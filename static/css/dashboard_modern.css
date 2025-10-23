@@ -602,55 +602,25 @@
     border-color: currentColor;
 }
 
-.live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.6rem;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: currentColor;
-    margin-bottom: 0.75rem;
-}
-
-.live-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: currentColor;
-    animation: pulse-dot 2s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.5;
-        transform: scale(1.2);
-    }
-}
+/* Live badge removed - no longer used */
 
 .stat-icon-large {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     background: currentColor;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     opacity: 0.9;
     transition: all 0.3s ease;
 }
 
 .stat-icon-large svg {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
 }
 
 .stat-card-live:hover .stat-icon-large {
