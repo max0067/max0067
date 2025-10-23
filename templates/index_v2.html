@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Manager</title>
+    <link rel="stylesheet" href="/static/css/style_v2.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation moderne -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <svg width="30" height="30" viewBox="0 0 50 50" style="margin-right: 10px;">
+                    <circle cx="25" cy="25" r="20" fill="url(#gradient)" />
+                    <circle cx="12" cy="38" r="3" fill="white" />
+                    <path d="M 12 32 Q 12 20, 24 20" stroke="white" stroke-width="3" fill="none" />
+                    <path d="M 12 26 Q 12 18, 20 18" stroke="white" stroke-width="3" fill="none" />
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea" />
+                            <stop offset="100%" style="stop-color:#764ba2" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>RSS Manager</span>
+            </div>
+
+            <div class="navbar-menu">
+                <a href="/" class="nav-link active">
+                    <span class="icon">🏠</span> Accueil
+                </a>
+                <a href="/dashboard" class="nav-link">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="#" class="nav-link" id="favorites-link">
+                    <span class="icon">⭐</span> Favoris
+                </a>
+            </div>
+
+            <div class="navbar-user">
+                <div class="user-menu">
+                    <button class="user-button" id="user-menu-button">
+                        <span class="user-avatar">👤</span>
+                        <span class="user-name" id="current-username">Utilisateur</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="user-dropdown" id="user-dropdown" style="display: none;">
+                        <div class="user-info">
+                            <div class="user-info-name" id="dropdown-username">Utilisateur</div>
+                            <div class="user-info-role" id="dropdown-role">user</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="/admin" class="dropdown-item admin-only" id="admin-link" style="display: none;">
+                            <span class="icon">👑</span> Administration
+                        </a>
+                        <a href="#" class="dropdown-item" id="logout-link">
+                            <span class="icon">🚪</span> Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Barre de recherche moderne -->
+        <div class="search-bar">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Rechercher dans tous les articles..." />
+                <button class="search-clear" id="search-clear" style="display: none;">✕</button>
+            </div>
+            <div class="search-stats" id="search-stats"></div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="main-content">
+            <!-- Barre latérale -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>📁 Mes flux RSS</h2>
+                    <button id="btn-add-feed" class="btn btn-primary btn-sm">+ Ajouter</button>
+                </div>
+
+                <div class="sidebar-stats" id="sidebar-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-feeds">0</span>
+                        <span class="stat-label">flux</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-articles">0</span>
+                        <span class="stat-label">articles</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="stat-unread">0</span>
+                        <span class="stat-label">non lus</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-actions">
+                    <button id="btn-update-all" class="btn btn-secondary btn-block">🔄 Tout actualiser</button>
+                    <button id="btn-show-all" class="btn btn-secondary btn-block">📰 Tous les articles</button>
+                </div>
+
+                <div id="feeds-list" class="feeds-list">
+                    <!-- Les flux seront affichés ici -->
+                </div>
+            </aside>
+
+            <!-- Zone des articles -->
+            <main class="content">
+                <div class="content-header">
+                    <h2 id="articles-title">Tous les articles</h2>
+                    <div class="filters">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" id="filter-unread">
+                            <span>Non lus seulement</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="articles-list" class="articles-list">
+                    <!-- Les articles seront affichés ici -->
+                </div>
+
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Chargement...</p>
+                </div>
+
+                <div id="no-articles" class="no-content" style="display: none;">
+                    <div class="empty-icon">📭</div>
+                    <p>Aucun article à afficher</p>
+                    <p class="empty-subtitle">Ajoutez des flux RSS pour commencer</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter/modifier un flux -->
+    <div id="feed-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Ajouter un flux RSS</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+
+            <form id="feed-form">
+                <input type="hidden" id="feed-id">
+
+                <div class="form-group">
+                    <label for="feed-title">Titre du flux</label>
+                    <input type="text" id="feed-title" placeholder="Ex: TechCrunch, Le Monde..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="feed-url">URL du flux RSS</label>
+                    <input type="url" id="feed-url" placeholder="https://example.com/feed.xml" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="feed-description">Description (optionnel)</label>
+                    <textarea id="feed-description" placeholder="Description du flux..." rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="feed-interval">Intervalle de mise à jour (minutes)</label>
+                    <input type="number" id="feed-interval" min="5" value="30">
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="feed-active" checked>
+                        <span>Flux actif (mise à jour automatique)</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                    <button type="button" class="btn btn-secondary" id="btn-cancel">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pour afficher un article -->
+    <div id="article-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="article-detail" class="article-detail">
+                <!-- Le contenu de l'article sera affiché ici -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app_v2.js"></script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - RSS Manager</title>
+    <link rel="stylesheet" href="/static/css/style_v2.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <svg width="30" height="30" viewBox="0 0 50 50" style="margin-right: 10px;">
+                    <circle cx="25" cy="25" r="20" fill="url(#gradient)" />
+                    <circle cx="12" cy="38" r="3" fill="white" />
+                    <path d="M 12 32 Q 12 20, 24 20" stroke="white" stroke-width="3" fill="none" />
+                    <path d="M 12 26 Q 12 18, 20 18" stroke="white" stroke-width="3" fill="none" />
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea" />
+                            <stop offset="100%" style="stop-color:#764ba2" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>RSS Manager</span>
+            </div>
+
+            <div class="navbar-menu">
+                <a href="/" class="nav-link">
+                    <span class="icon">🏠</span> Accueil
+                </a>
+                <a href="/dashboard" class="nav-link">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="/admin" class="nav-link active">
+                    <span class="icon">👑</span> Administration
+                </a>
+            </div>
+
+            <div class="navbar-user">
+                <div class="user-menu">
+                    <button class="user-button" id="user-menu-button">
+                        <span class="user-avatar">👤</span>
+                        <span class="user-name" id="current-username">Admin</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="user-dropdown" id="user-dropdown" style="display: none;">
+                        <div class="user-info">
+                            <div class="user-info-name" id="dropdown-username">Admin</div>
+                            <div class="user-info-role">admin</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logout-link">
+                            <span class="icon">🚪</span> Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Admin Content -->
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1>👑 Panel d'administration</h1>
+                <p>Gestion des utilisateurs et statistiques globales</p>
+            </div>
+
+            <!-- Statistiques globales -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-users">0</div>
+                        <div class="stat-label">Utilisateurs</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="active-users">0</div>
+                        <div class="stat-label">Actifs</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📡</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-feeds-global">0</div>
+                        <div class="stat-label">Flux RSS</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📰</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="total-articles-global">0</div>
+                        <div class="stat-label">Articles</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="avg-articles-per-user">0</div>
+                        <div class="stat-label">Moy. articles/user</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestion des utilisateurs -->
+            <div class="admin-section">
+                <div class="section-header">
+                    <h2>👥 Gestion des utilisateurs</h2>
+                    <button class="btn btn-primary" id="btn-add-user">+ Ajouter un utilisateur</button>
+                </div>
+
+                <div class="users-table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Utilisateur</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
+                                <th>Statut</th>
+                                <th>Créé le</th>
+                                <th>Dernière connexion</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr>
+                                <td colspan="8" class="loading-row">Chargement...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajout/Modification utilisateur -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="user-modal-title">Ajouter un utilisateur</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+
+                <div class="form-group">
+                    <label for="user-username">Nom d'utilisateur</label>
+                    <input type="text" id="user-username" required minlength="3">
+                </div>
+
+                <div class="form-group">
+                    <label for="user-email">Email</label>
+                    <input type="email" id="user-email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-password">Mot de passe</label>
+                    <input type="password" id="user-password" minlength="6">
+                    <small class="form-hint">Laissez vide pour ne pas modifier</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="user-role">Rôle</label>
+                    <select id="user-role">
+                        <option value="user">Utilisateur</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="user-active" checked>
+                        <span>Compte actif</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-user">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let users = [];
+
+        async function loadCurrentUser() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+                if (data.success && data.user.role === 'admin') {
+                    currentUser = data.user;
+                    document.getElementById('current-username').textContent = currentUser.username;
+                    document.getElementById('dropdown-username').textContent = currentUser.username;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        async function loadAdminStats() {
+            try {
+                const response = await fetch('/api/admin/stats');
+                const data = await response.json();
+
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('total-users').textContent = stats.total_users;
+                    document.getElementById('active-users').textContent = stats.active_users;
+                    document.getElementById('total-feeds-global').textContent = stats.total_feeds;
+                    document.getElementById('total-articles-global').textContent = stats.total_articles;
+                    document.getElementById('avg-articles-per-user').textContent = stats.avg_articles_per_user;
+                }
+            } catch (error) {
+                console.error('Error loading admin stats:', error);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/admin/users');
+                const data = await response.json();
+
+                if (data.success) {
+                    users = data.users;
+                    renderUsers();
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-row">Aucun utilisateur</td></tr>';
+                return;
+            }
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                const createdDate = new Date(user.created_at).toLocaleDateString('fr-FR');
+                const lastLogin = user.last_login ? new Date(user.last_login).toLocaleDateString('fr-FR') : 'Jamais';
+
+                tr.innerHTML = `
+                    <td>${user.id}</td>
+                    <td><strong>${escapeHtml(user.username)}</strong></td>
+                    <td>${escapeHtml(user.email)}</td>
+                    <td><span class="badge badge-${user.role === 'admin' ? 'primary' : 'secondary'}">${user.role}</span></td>
+                    <td><span class="badge badge-${user.active ? 'success' : 'danger'}">${user.active ? 'Actif' : 'Inactif'}</span></td>
+                    <td>${createdDate}</td>
+                    <td>${lastLogin}</td>
+                    <td>
+                        <button class="btn-icon" onclick="editUser(${user.id})" title="Modifier">✏️</button>
+                        <button class="btn-icon" onclick="deleteUser(${user.id})" title="Supprimer" ${user.id === currentUser.id ? 'disabled' : ''}>🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openUserModal(user = null) {
+            const modal = document.getElementById('user-modal');
+            const title = document.getElementById('user-modal-title');
+            const form = document.getElementById('user-form');
+
+            if (user) {
+                title.textContent = 'Modifier l\'utilisateur';
+                document.getElementById('user-id').value = user.id;
+                document.getElementById('user-username').value = user.username;
+                document.getElementById('user-email').value = user.email;
+                document.getElementById('user-password').value = '';
+                document.getElementById('user-password').required = false;
+                document.getElementById('user-role').value = user.role;
+                document.getElementById('user-active').checked = user.active;
+            } else {
+                title.textContent = 'Ajouter un utilisateur';
+                form.reset();
+                document.getElementById('user-id').value = '';
+                document.getElementById('user-password').required = true;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').style.display = 'none';
+        }
+
+        window.editUser = function(userId) {
+            const user = users.find(u => u.id === userId);
+            if (user) {
+                openUserModal(user);
+            }
+        };
+
+        window.deleteUser = async function(userId) {
+            if (userId === currentUser.id) {
+                alert('Vous ne pouvez pas supprimer votre propre compte !');
+                return;
+            }
+
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ? Toutes ses données seront supprimées.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('Utilisateur supprimé avec succès', 'success');
+                    loadUsers();
+                    loadAdminStats();
+                } else {
+                    showNotification(data.error || 'Erreur lors de la suppression', 'error');
+                }
+            } catch (error) {
+                showNotification('Erreur serveur', 'error');
+            }
+        };
+
+        document.getElementById('user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const userId = document.getElementById('user-id').value;
+            const userData = {
+                username: document.getElementById('user-username').value,
+                email: document.getElementById('user-email').value,
+                role: document.getElementById('user-role').value,
+                active: document.getElementById('user-active').checked ? 1 : 0
+            };
+
+            const password = document.getElementById('user-password').value;
+            if (password) {
+                userData.password = password;
+            }
+
+            try {
+                let response;
+                if (userId) {
+                    response = await fetch(`/api/admin/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(userData)
+                    });
+                } else {
+                    response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(userData)
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification(userId ? 'Utilisateur modifié avec succès' : 'Utilisateur créé avec succès', 'success');
+                    closeUserModal();
+                    loadUsers();
+                    loadAdminStats();
+                } else {
+                    showNotification(data.error || 'Erreur lors de la sauvegarde', 'error');
+                }
+            } catch (error) {
+                showNotification('Erreur serveur', 'error');
+            }
+        });
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#4ade80' : '#f87171'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s;
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Event listeners
+        document.getElementById('btn-add-user').addEventListener('click', () => openUserModal());
+        document.getElementById('btn-cancel-user').addEventListener('click', closeUserModal);
+
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.closest('.modal').style.display = 'none';
+            });
+        });
+
+        document.getElementById('user-menu-button').addEventListener('click', () => {
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('user-dropdown');
+            const button = document.getElementById('user-menu-button');
+            if (!button.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        document.getElementById('logout-link').addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        });
+
+        // Initialisation
+        loadCurrentUser();
+        loadAdminStats();
+        loadUsers();
+
+        // Actualiser toutes les 30 secondes
+        setInterval(() => {
+            loadAdminStats();
+            loadUsers();
+        }, 30000);
+    </script>
+</body>
+</html>
