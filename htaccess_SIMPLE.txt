@@ -1,0 +1,32 @@
+# VERSION SIMPLIFIÉE DE .htaccess
+# Renommez ce fichier en .htaccess
+
+# ⚠️ MODIFIEZ LA LIGNE CI-DESSOUS
+# Remplacez VOTRE_UTILISATEUR et VOTRE_CHEMIN
+
+PassengerAppRoot /home/VOTRE_UTILISATEUR/VOTRE_CHEMIN
+
+# Exemples (décommentez celui qui correspond) :
+# PassengerAppRoot /home/max0067/public_html
+# PassengerAppRoot /home/max0067/public_html/rss-manager
+# PassengerAppRoot /home/max0067/rss.domaine.com
+
+# Configuration Passenger
+PassengerEnabled on
+PassengerAppType wsgi
+PassengerStartupFile passenger_wsgi.py
+
+# Protection des fichiers sensibles
+<FilesMatch "(\.py$|\.db$|\.sqlite$|requirements\.txt$|\.env$)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Autoriser l'accès aux fichiers statiques
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Désactiver l'affichage des dossiers
+Options -Indexes
