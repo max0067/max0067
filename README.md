@@ -53,7 +53,29 @@ pip install -r requirements.txt
 python database.py
 ```
 
-## Utilisation
+## Déploiement sur o2switch
+
+Pour déployer cette application sur un hébergement o2switch, consultez les guides détaillés :
+
+- **[Guide Rapide o2switch](GUIDE_RAPIDE_O2SWITCH.md)** - Démarrage rapide en quelques étapes
+- **[Guide Complet o2switch](DEPLOIEMENT_O2SWITCH.md)** - Documentation détaillée du déploiement
+
+### Installation automatique sur o2switch
+
+```bash
+# Connectez-vous en SSH à votre serveur o2switch
+ssh votre_utilisateur@ssh.o2switch.net
+
+# Placez-vous dans le bon dossier
+cd ~/public_html/rss-manager
+
+# Téléchargez le projet (via Git ou FTP)
+# Puis lancez le script de déploiement
+chmod +x deploy_o2switch.sh
+./deploy_o2switch.sh
+```
+
+## Utilisation en local
 
 ### Démarrer l'application
 
