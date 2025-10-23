@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - RSS Manager</title>
     <link rel="stylesheet" href="/static/css/style_v2.css">
+    <link rel="stylesheet" href="/static/css/dashboard_modern.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -28,13 +30,25 @@
 
             <div class="navbar-menu">
                 <a href="/" class="nav-link">
-                    <span class="icon">🏠</span> Accueil
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                    <span>Accueil</span>
                 </a>
                 <a href="/dashboard" class="nav-link active">
-                    <span class="icon">📊</span> Dashboard
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
                 </a>
                 <a href="/#favorites" class="nav-link">
-                    <span class="icon">⭐</span> Favoris
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>Favoris</span>
                 </a>
             </div>
 
@@ -52,10 +66,18 @@
                         </div>
                         <div class="dropdown-divider"></div>
                         <a href="/admin" class="dropdown-item admin-only" id="admin-link" style="display: none;">
-                            <span class="icon">👑</span> Administration
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7v10c0 5.5 4.5 10 10 10s10-4.5 10-10V7l-10-5z"></path>
+                            </svg>
+                            <span>Administration</span>
                         </a>
                         <a href="#" class="dropdown-item" id="logout-link">
-                            <span class="icon">🚪</span> Déconnexion
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Déconnexion</span>
                         </a>
                     </div>
                 </div>
@@ -63,256 +85,233 @@
         </nav>
 
         <!-- Dashboard Content -->
-        <div class="dashboard-container">
-            <div class="dashboard-header">
-                <h1>📊 Tableau de bord</h1>
-                <p>Aperçu de votre activité RSS</p>
+        <div class="modern-dashboard">
+            <!-- Header -->
+            <div class="dashboard-header-modern">
+                <div>
+                    <h1 class="dashboard-title">Tableau de bord</h1>
+                    <p class="dashboard-subtitle">Vue d'ensemble de votre activité RSS</p>
+                </div>
+                <button class="refresh-button" id="refresh-button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    Actualiser
+                </button>
             </div>
 
-            <!-- Cartes de statistiques -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">📡</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="total-feeds">0</div>
-                        <div class="stat-label">Flux RSS</div>
+            <!-- Stats Cards -->
+            <div class="stats-grid-modern">
+                <div class="stat-card-modern">
+                    <div class="stat-card-content">
+                        <div class="stat-header">
+                            <span class="stat-label">Flux RSS</span>
+                            <div class="stat-icon-modern blue">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 11a9 9 0 0 1 9 9"></path>
+                                    <path d="M4 4a16 16 0 0 1 16 16"></path>
+                                    <circle cx="5" cy="19" r="1"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-modern" id="total-feeds">0</div>
+                        <div class="stat-footer">
+                            <span class="stat-change positive">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="18 15 12 9 6 15"></polyline>
+                                </svg>
+                                <span id="active-feeds">0</span> actifs
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar blue" style="width: 0%" id="feeds-progress"></div>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">📰</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="total-articles">0</div>
-                        <div class="stat-label">Articles au total</div>
+                <div class="stat-card-modern">
+                    <div class="stat-card-content">
+                        <div class="stat-header">
+                            <span class="stat-label">Articles total</span>
+                            <div class="stat-icon-modern purple">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                    <polyline points="13 2 13 9 20 9"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-modern" id="total-articles">0</div>
+                        <div class="stat-footer">
+                            <span class="stat-info">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                <span id="avg-articles">0</span> par flux
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar purple" style="width: 0%" id="articles-progress"></div>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">🆕</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="unread-articles">0</div>
-                        <div class="stat-label">Articles non lus</div>
+                <div class="stat-card-modern">
+                    <div class="stat-card-content">
+                        <div class="stat-header">
+                            <span class="stat-label">Non lus</span>
+                            <div class="stat-icon-modern green">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-modern" id="unread-articles">0</div>
+                        <div class="stat-footer">
+                            <span class="stat-info">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                                À découvrir
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar green" style="width: 0%" id="unread-progress"></div>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">⭐</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="favorite-articles">0</div>
-                        <div class="stat-label">Articles favoris</div>
+                <div class="stat-card-modern">
+                    <div class="stat-card-content">
+                        <div class="stat-header">
+                            <span class="stat-label">Favoris</span>
+                            <div class="stat-icon-modern orange">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-modern" id="favorite-articles">0</div>
+                        <div class="stat-footer">
+                            <span class="stat-info">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                Sauvegardés
+                            </span>
+                        </div>
                     </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="active-feeds">0</div>
-                        <div class="stat-label">Flux actifs</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">📈</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="avg-articles">0</div>
-                        <div class="stat-label">Articles / flux</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar orange" style="width: 0%" id="favorites-progress"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Activité récente -->
-            <div class="dashboard-section">
-                <h2>📅 Activité récente</h2>
-                <div class="activity-list" id="recent-activity">
-                    <div class="activity-item">
-                        <div class="activity-icon">📡</div>
-                        <div class="activity-content">
-                            <p class="activity-title">Bienvenue sur votre dashboard !</p>
-                            <p class="activity-time">Ajoutez des flux RSS pour voir vos statistiques</p>
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Répartition des articles</h3>
+                        <span class="chart-badge">Dernières données</span>
+                    </div>
+                    <canvas id="articlesChart"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Top 5 flux RSS</h3>
+                        <span class="chart-badge">Les plus actifs</span>
+                    </div>
+                    <canvas id="feedsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Activity & Quick Actions -->
+            <div class="bottom-grid">
+                <!-- Top Feeds List -->
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <h3>🔥 Flux les plus actifs</h3>
+                    </div>
+                    <div class="top-feeds-list" id="top-feeds-list">
+                        <div class="empty-state">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <p>Aucun flux RSS pour le moment</p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Flux les plus actifs -->
-            <div class="dashboard-section">
-                <h2>🔥 Flux les plus actifs</h2>
-                <div class="feeds-ranking" id="top-feeds">
-                    <p class="empty-message">Aucun flux RSS pour le moment</p>
-                </div>
-            </div>
+                <!-- Quick Actions -->
+                <div class="quick-actions-card">
+                    <div class="activity-header">
+                        <h3>⚡ Actions rapides</h3>
+                    </div>
+                    <div class="quick-actions-grid">
+                        <a href="/" class="quick-action-item">
+                            <div class="quick-action-icon blue">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </div>
+                            <div class="quick-action-text">
+                                <div class="quick-action-title">Ajouter un flux</div>
+                                <div class="quick-action-desc">Nouveau flux RSS</div>
+                            </div>
+                        </a>
 
-            <!-- Actions rapides -->
-            <div class="dashboard-section">
-                <h2>⚡ Actions rapides</h2>
-                <div class="quick-actions">
-                    <a href="/" class="action-card">
-                        <div class="action-icon">➕</div>
-                        <div class="action-title">Ajouter un flux</div>
-                        <div class="action-desc">Ajouter un nouveau flux RSS</div>
-                    </a>
-                    <a href="/?unread=true" class="action-card">
-                        <div class="action-icon">📖</div>
-                        <div class="action-title">Articles non lus</div>
-                        <div class="action-desc">Voir tous les articles non lus</div>
-                    </a>
-                    <a href="/#favorites" class="action-card">
-                        <div class="action-icon">⭐</div>
-                        <div class="action-title">Mes favoris</div>
-                        <div class="action-desc">Accéder à vos favoris</div>
-                    </a>
-                    <a href="#" id="update-all-action" class="action-card">
-                        <div class="action-icon">🔄</div>
-                        <div class="action-title">Actualiser tout</div>
-                        <div class="action-desc">Mettre à jour tous les flux</div>
-                    </a>
+                        <a href="/?unread=true" class="quick-action-item">
+                            <div class="quick-action-icon green">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                </svg>
+                            </div>
+                            <div class="quick-action-text">
+                                <div class="quick-action-title">Articles non lus</div>
+                                <div class="quick-action-desc">Tout voir</div>
+                            </div>
+                        </a>
+
+                        <a href="/#favorites" class="quick-action-item">
+                            <div class="quick-action-icon orange">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </div>
+                            <div class="quick-action-text">
+                                <div class="quick-action-title">Mes favoris</div>
+                                <div class="quick-action-desc">Accéder</div>
+                            </div>
+                        </a>
+
+                        <a href="#" id="update-all-action" class="quick-action-item">
+                            <div class="quick-action-icon purple">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                            </div>
+                            <div class="quick-action-text">
+                                <div class="quick-action-title">Actualiser tout</div>
+                                <div class="quick-action-desc">Mise à jour</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Charger les données du dashboard
-        let currentUser = null;
-
-        async function loadCurrentUser() {
-            try {
-                const response = await fetch('/api/auth/me');
-                const data = await response.json();
-                if (data.success) {
-                    currentUser = data.user;
-                    document.getElementById('current-username').textContent = currentUser.username;
-                    document.getElementById('dropdown-username').textContent = currentUser.username;
-                    document.getElementById('dropdown-role').textContent = currentUser.role;
-
-                    if (currentUser.role === 'admin') {
-                        document.getElementById('admin-link').style.display = 'flex';
-                    }
-                } else {
-                    window.location.href = '/login';
-                }
-            } catch (error) {
-                window.location.href = '/login';
-            }
-        }
-
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/stats');
-                const data = await response.json();
-
-                if (data.success) {
-                    const stats = data.stats;
-                    document.getElementById('total-feeds').textContent = stats.total_feeds;
-                    document.getElementById('active-feeds').textContent = stats.active_feeds;
-                    document.getElementById('total-articles').textContent = stats.total_articles;
-                    document.getElementById('unread-articles').textContent = stats.unread_articles;
-                    document.getElementById('favorite-articles').textContent = stats.favorites || 0;
-
-                    const avg = stats.total_feeds > 0 ? Math.round(stats.total_articles / stats.total_feeds) : 0;
-                    document.getElementById('avg-articles').textContent = avg;
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        async function loadTopFeeds() {
-            try {
-                const response = await fetch('/api/feeds');
-                const data = await response.json();
-
-                if (data.success && data.feeds.length > 0) {
-                    const sorted = data.feeds.sort((a, b) => b.article_count - a.article_count).slice(0, 5);
-                    const container = document.getElementById('top-feeds');
-                    container.innerHTML = '';
-
-                    sorted.forEach((feed, index) => {
-                        const item = document.createElement('div');
-                        item.className = 'feed-rank-item';
-                        item.innerHTML = `
-                            <div class="rank-number">${index + 1}</div>
-                            <div class="rank-content">
-                                <div class="rank-title">${escapeHtml(feed.title)}</div>
-                                <div class="rank-count">${feed.article_count} articles</div>
-                            </div>
-                        `;
-                        container.appendChild(item);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading top feeds:', error);
-            }
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Menu utilisateur
-        document.getElementById('user-menu-button').addEventListener('click', () => {
-            const dropdown = document.getElementById('user-dropdown');
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        });
-
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('user-dropdown');
-            const button = document.getElementById('user-menu-button');
-            if (!button.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-
-        // Déconnexion
-        document.getElementById('logout-link').addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await fetch('/api/auth/logout', { method: 'POST' });
-                window.location.href = '/login';
-            } catch (error) {
-                window.location.href = '/login';
-            }
-        });
-
-        // Actualiser tout
-        document.getElementById('update-all-action').addEventListener('click', async (e) => {
-            e.preventDefault();
-            const card = e.currentTarget;
-            const icon = card.querySelector('.action-icon');
-            icon.textContent = '⏳';
-
-            try {
-                const response = await fetch('/api/feeds/update-all', { method: 'POST' });
-                const data = await response.json();
-
-                if (data.success) {
-                    icon.textContent = '✅';
-                    setTimeout(() => {
-                        icon.textContent = '🔄';
-                        loadStats();
-                    }, 2000);
-                } else {
-                    icon.textContent = '❌';
-                    setTimeout(() => icon.textContent = '🔄', 2000);
-                }
-            } catch (error) {
-                icon.textContent = '❌';
-                setTimeout(() => icon.textContent = '🔄', 2000);
-            }
-        });
-
-        // Initialisation
-        loadCurrentUser();
-        loadStats();
-        loadTopFeeds();
-
-        // Actualiser toutes les 30 secondes
-        setInterval(() => {
-            loadStats();
-            loadTopFeeds();
-        }, 30000);
-    </script>
+    <script src="/static/js/dashboard_modern.js"></script>
 </body>
 </html>
