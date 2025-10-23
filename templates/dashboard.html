@@ -88,9 +88,19 @@
         <div class="modern-dashboard">
             <!-- Header -->
             <div class="dashboard-header-modern">
-                <div>
-                    <h1 class="dashboard-title">Tableau de bord</h1>
-                    <p class="dashboard-subtitle">Vue d'ensemble de votre activité RSS</p>
+                <div class="header-left">
+                    <div class="header-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="dashboard-title">Tableau de bord</h1>
+                        <p class="dashboard-subtitle">Statistiques en temps réel</p>
+                    </div>
                 </div>
                 <button class="refresh-button" id="refresh-button">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -102,112 +112,118 @@
                 </button>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="stats-grid-modern">
-                <div class="stat-card-modern">
-                    <div class="stat-card-content">
-                        <div class="stat-header">
-                            <span class="stat-label">Flux RSS</span>
-                            <div class="stat-icon-modern blue">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M4 11a9 9 0 0 1 9 9"></path>
-                                    <path d="M4 4a16 16 0 0 1 16 16"></path>
-                                    <circle cx="5" cy="19" r="1"></circle>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="stat-value-modern" id="total-feeds">0</div>
-                        <div class="stat-footer">
-                            <span class="stat-change positive">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="18 15 12 9 6 15"></polyline>
-                                </svg>
-                                <span id="active-feeds">0</span> actifs
-                            </span>
-                        </div>
+            <!-- Stats Cards - 6 cartes avec couleurs distinctes -->
+            <div class="stats-grid-6">
+                <!-- Carte 1: Bleu - Flux RSS -->
+                <div class="stat-card-live blue">
+                    <div class="live-badge">
+                        <span class="live-dot"></span>
+                        Live
                     </div>
-                    <div class="stat-progress">
-                        <div class="stat-progress-bar blue" style="width: 0%" id="feeds-progress"></div>
+                    <div class="stat-icon-large">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 11a9 9 0 0 1 9 9"></path>
+                            <path d="M4 4a16 16 0 0 1 16 16"></path>
+                            <circle cx="5" cy="19" r="1"></circle>
+                        </svg>
                     </div>
+                    <div class="stat-value-large" id="total-feeds">0</div>
+                    <div class="stat-label-large">Flux RSS</div>
                 </div>
 
-                <div class="stat-card-modern">
-                    <div class="stat-card-content">
-                        <div class="stat-header">
-                            <span class="stat-label">Articles total</span>
-                            <div class="stat-icon-modern purple">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                                    <polyline points="13 2 13 9 20 9"></polyline>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="stat-value-modern" id="total-articles">0</div>
-                        <div class="stat-footer">
-                            <span class="stat-info">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                                </svg>
-                                <span id="avg-articles">0</span> par flux
-                            </span>
-                        </div>
+                <!-- Carte 2: Orange - Articles total -->
+                <div class="stat-card-live orange">
+                    <div class="live-badge">
+                        <span class="live-dot"></span>
+                        Live
                     </div>
-                    <div class="stat-progress">
-                        <div class="stat-progress-bar purple" style="width: 0%" id="articles-progress"></div>
+                    <div class="stat-icon-large">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                        </svg>
                     </div>
+                    <div class="stat-value-large" id="total-articles">0</div>
+                    <div class="stat-label-large">Articles total</div>
                 </div>
 
-                <div class="stat-card-modern">
-                    <div class="stat-card-content">
-                        <div class="stat-header">
-                            <span class="stat-label">Non lus</span>
-                            <div class="stat-icon-modern green">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="stat-value-modern" id="unread-articles">0</div>
-                        <div class="stat-footer">
-                            <span class="stat-info">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                </svg>
-                                À découvrir
-                            </span>
-                        </div>
+                <!-- Carte 3: Jaune - Articles non lus -->
+                <div class="stat-card-live yellow">
+                    <div class="live-badge">
+                        <span class="live-dot"></span>
+                        Live
                     </div>
-                    <div class="stat-progress">
-                        <div class="stat-progress-bar green" style="width: 0%" id="unread-progress"></div>
+                    <div class="stat-icon-large">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
                     </div>
+                    <div class="stat-value-large" id="unread-articles">0</div>
+                    <div class="stat-label-large">Non lus</div>
                 </div>
 
-                <div class="stat-card-modern">
-                    <div class="stat-card-content">
-                        <div class="stat-header">
-                            <span class="stat-label">Favoris</span>
-                            <div class="stat-icon-modern orange">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="stat-value-modern" id="favorite-articles">0</div>
-                        <div class="stat-footer">
-                            <span class="stat-info">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                </svg>
-                                Sauvegardés
-                            </span>
-                        </div>
+                <!-- Carte 4: Vert - Favoris -->
+                <div class="stat-card-live green">
+                    <div class="live-badge">
+                        <span class="live-dot"></span>
+                        Live
                     </div>
-                    <div class="stat-progress">
-                        <div class="stat-progress-bar orange" style="width: 0%" id="favorites-progress"></div>
+                    <div class="stat-icon-large">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
                     </div>
+                    <div class="stat-value-large" id="favorite-articles">0</div>
+                    <div class="stat-label-large">Favoris</div>
+                </div>
+
+                <!-- Carte 5: Violet - Flux actifs -->
+                <div class="stat-card-live purple">
+                    <div class="live-badge">
+                        <span class="live-dot"></span>
+                        Live
+                    </div>
+                    <div class="stat-icon-large">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-value-large" id="active-feeds">0</div>
+                    <div class="stat-label-large">Flux actifs</div>
+                </div>
+
+                <!-- Carte 6: Teal - Moyenne -->
+                <div class="stat-card-live teal">
+                    <div class="live-badge">
+                        <span class="live-dot"></span>
+                        Live
+                    </div>
+                    <div class="stat-icon-large">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="20" x2="12" y2="10"></line>
+                            <line x1="18" y1="20" x2="18" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="16"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-value-large" id="avg-articles">0</div>
+                    <div class="stat-label-large">Articles / flux</div>
+                </div>
+            </div>
+
+            <!-- Section d'information -->
+            <div class="info-section">
+                <div class="info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </div>
+                <div class="info-content">
+                    <h3>Veille RSS automatisée</h3>
+                    <p>Vos flux RSS sont mis à jour automatiquement toutes les 30 minutes. Les statistiques sont actualisées en temps réel pour vous offrir une vue d'ensemble précise de votre activité.</p>
                 </div>
             </div>
 
@@ -230,7 +246,7 @@
                 </div>
             </div>
 
-            <!-- Activity & Quick Actions -->
+            <!-- Bottom Grid -->
             <div class="bottom-grid">
                 <!-- Top Feeds List -->
                 <div class="activity-card">
