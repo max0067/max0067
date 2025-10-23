@@ -84,25 +84,15 @@
         </nav>
 
         <!-- Dashboard Content -->
-        <div class="modern-dashboard">
+        <div class="dashboard-modern">
             <!-- Header -->
-            <div class="dashboard-header-modern">
-                <div class="header-left">
-                    <div class="header-icon">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="dashboard-title">Tableau de bord</h1>
-                        <p class="dashboard-subtitle">Statistiques en temps réel</p>
-                    </div>
+            <div class="dash-header">
+                <div class="dash-header-content">
+                    <h1 class="dash-title">Tableau de bord</h1>
+                    <p class="dash-subtitle">Vue d'ensemble de votre veille RSS</p>
                 </div>
-                <button class="refresh-button" id="refresh-button">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="btn-refresh" id="refresh-button">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="23 4 23 10 17 10"></polyline>
                         <polyline points="1 20 1 14 7 14"></polyline>
                         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
@@ -111,177 +101,143 @@
                 </button>
             </div>
 
-            <!-- Stats Cards - 6 cartes avec couleurs distinctes -->
-            <div class="stats-grid-6">
-                <!-- Carte 1: Bleu - Flux RSS -->
-                <div class="stat-card-live blue">
-                    <div class="stat-icon-large">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 11a9 9 0 0 1 9 9"></path>
-                            <path d="M4 4a16 16 0 0 1 16 16"></path>
-                            <circle cx="5" cy="19" r="1"></circle>
-                        </svg>
+            <!-- Stats Grid - 6 cartes -->
+            <div class="stats-grid">
+                <!-- Carte 1: Bleu -->
+                <div class="stat-card blue">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 11a9 9 0 0 1 9 9"></path>
+                                <path d="M4 4a16 16 0 0 1 16 16"></path>
+                                <circle cx="5" cy="19" r="1"></circle>
+                            </svg>
+                        </div>
+                        <span class="stat-label">Flux RSS</span>
                     </div>
-                    <div class="stat-value-large" id="total-feeds">0</div>
-                    <div class="stat-label-large">Flux RSS</div>
+                    <div class="stat-value" id="total-feeds">0</div>
                 </div>
 
-                <!-- Carte 2: Orange - Articles total -->
-                <div class="stat-card-live orange">
-                    <div class="stat-icon-large">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                            <polyline points="13 2 13 9 20 9"></polyline>
-                        </svg>
+                <!-- Carte 2: Orange -->
+                <div class="stat-card orange">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                <polyline points="13 2 13 9 20 9"></polyline>
+                            </svg>
+                        </div>
+                        <span class="stat-label">Articles</span>
                     </div>
-                    <div class="stat-value-large" id="total-articles">0</div>
-                    <div class="stat-label-large">Articles total</div>
+                    <div class="stat-value" id="total-articles">0</div>
                 </div>
 
-                <!-- Carte 3: Jaune - Articles non lus -->
-                <div class="stat-card-live yellow">
-                    </div>
-                    <div class="stat-icon-large">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                    </div>
-                    <div class="stat-value-large" id="unread-articles">0</div>
-                    <div class="stat-label-large">Non lus</div>
-                </div>
-
-                <!-- Carte 4: Vert - Favoris -->
-                <div class="stat-card-live green">
-                    </div>
-                    <div class="stat-icon-large">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                    </div>
-                    <div class="stat-value-large" id="favorite-articles">0</div>
-                    <div class="stat-label-large">Favoris</div>
-                </div>
-
-                <!-- Carte 5: Violet - Flux actifs -->
-                <div class="stat-card-live purple">
-                    </div>
-                    <div class="stat-icon-large">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                        </svg>
-                    </div>
-                    <div class="stat-value-large" id="active-feeds">0</div>
-                    <div class="stat-label-large">Flux actifs</div>
-                </div>
-
-                <!-- Carte 6: Teal - Moyenne -->
-                <div class="stat-card-live teal">
-                    </div>
-                    <div class="stat-icon-large">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="20" x2="12" y2="10"></line>
-                            <line x1="18" y1="20" x2="18" y2="4"></line>
-                            <line x1="6" y1="20" x2="6" y2="16"></line>
-                        </svg>
-                    </div>
-                    <div class="stat-value-large" id="avg-articles">0</div>
-                    <div class="stat-label-large">Articles / flux</div>
-                </div>
-            </div>
-
-            <!-- Section d'information -->
-            <div class="info-section">
-                <div class="info-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </div>
-                <div class="info-content">
-                    <h3>Veille RSS automatisée</h3>
-                    <p>Vos flux RSS sont mis à jour automatiquement toutes les 30 minutes. Les statistiques sont actualisées en temps réel pour vous offrir une vue d'ensemble précise de votre activité.</p>
-                </div>
-            </div>
-
-            <!-- Bottom Grid -->
-            <div class="bottom-grid">
-                <!-- Top Feeds List -->
-                <div class="activity-card">
-                    <div class="activity-header">
-                        <h3>🔥 Flux les plus actifs</h3>
-                    </div>
-                    <div class="top-feeds-list" id="top-feeds-list">
-                        <div class="empty-state">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <!-- Carte 3: Jaune -->
+                <div class="stat-card yellow">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
                                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
                             </svg>
-                            <p>Aucun flux RSS pour le moment</p>
                         </div>
+                        <span class="stat-label">Non lus</span>
                     </div>
+                    <div class="stat-value" id="unread-articles">0</div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="quick-actions-card">
-                    <div class="activity-header">
-                        <h3>⚡ Actions rapides</h3>
+                <!-- Carte 4: Vert -->
+                <div class="stat-card green">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </div>
+                        <span class="stat-label">Favoris</span>
                     </div>
-                    <div class="quick-actions-grid">
-                        <a href="/" class="quick-action-item">
-                            <div class="quick-action-icon blue">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                            </div>
-                            <div class="quick-action-text">
-                                <div class="quick-action-title">Ajouter un flux</div>
-                                <div class="quick-action-desc">Nouveau flux RSS</div>
-                            </div>
-                        </a>
+                    <div class="stat-value" id="favorite-articles">0</div>
+                </div>
 
-                        <a href="/?unread=true" class="quick-action-item">
-                            <div class="quick-action-icon green">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                                </svg>
-                            </div>
-                            <div class="quick-action-text">
-                                <div class="quick-action-title">Articles non lus</div>
-                                <div class="quick-action-desc">Tout voir</div>
-                            </div>
-                        </a>
+                <!-- Carte 5: Violet -->
+                <div class="stat-card purple">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                        </div>
+                        <span class="stat-label">Flux actifs</span>
+                    </div>
+                    <div class="stat-value" id="active-feeds">0</div>
+                </div>
 
-                        <a href="/#favorites" class="quick-action-item">
-                            <div class="quick-action-icon orange">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                </svg>
-                            </div>
-                            <div class="quick-action-text">
-                                <div class="quick-action-title">Mes favoris</div>
-                                <div class="quick-action-desc">Accéder</div>
-                            </div>
-                        </a>
+                <!-- Carte 6: Teal -->
+                <div class="stat-card teal">
+                    <div class="stat-card-header">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="20" x2="12" y2="10"></line>
+                                <line x1="18" y1="20" x2="18" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="16"></line>
+                            </svg>
+                        </div>
+                        <span class="stat-label">Moyenne</span>
+                    </div>
+                    <div class="stat-value" id="avg-articles">0</div>
+                </div>
+            </div>
 
-                        <a href="#" id="update-all-action" class="quick-action-item">
-                            <div class="quick-action-icon purple">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="23 4 23 10 17 10"></polyline>
-                                    <polyline points="1 20 1 14 7 14"></polyline>
-                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                                </svg>
-                            </div>
-                            <div class="quick-action-text">
-                                <div class="quick-action-title">Actualiser tout</div>
-                                <div class="quick-action-desc">Mise à jour</div>
-                            </div>
-                        </a>
+            <!-- Actions rapides -->
+            <div class="quick-actions">
+                <h2 class="section-title">Actions rapides</h2>
+                <div class="actions-grid">
+                    <a href="/" class="action-btn blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Ajouter un flux</span>
+                    </a>
+
+                    <a href="/?unread=true" class="action-btn green">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                        <span>Voir non lus</span>
+                    </a>
+
+                    <a href="/#favorites" class="action-btn orange">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <span>Mes favoris</span>
+                    </a>
+
+                    <a href="#" id="update-all-action" class="action-btn purple">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>Tout actualiser</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flux actifs -->
+            <div class="feeds-section">
+                <h2 class="section-title">🔥 Flux les plus actifs</h2>
+                <div class="feeds-list" id="top-feeds-list">
+                    <div class="empty-message">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <p>Aucun flux RSS pour le moment</p>
                     </div>
                 </div>
             </div>

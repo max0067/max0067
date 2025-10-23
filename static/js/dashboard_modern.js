@@ -1,11 +1,8 @@
 /**
  * Dashboard Moderne - JavaScript
- * Gestion des graphiques et des interactions
  */
 
 let currentUser = null;
-let articlesChart = null;
-let feedsChart = null;
 
 // Charger l'utilisateur actuel
 async function loadCurrentUser() {
@@ -42,26 +39,15 @@ async function loadStats() {
         if (data.success) {
             const stats = data.stats;
 
-            // Mise à jour des valeurs
-            animateValue('total-feeds', 0, stats.total_feeds, 1000);
-            animateValue('active-feeds', 0, stats.active_feeds, 1000);
-            animateValue('total-articles', 0, stats.total_articles, 1200);
-            animateValue('unread-articles', 0, stats.unread_articles, 1000);
-            animateValue('favorite-articles', 0, stats.favorites || 0, 1000);
+            // Mise à jour des valeurs avec animation
+            animateValue('total-feeds', 0, stats.total_feeds, 800);
+            animateValue('active-feeds', 0, stats.active_feeds, 800);
+            animateValue('total-articles', 0, stats.total_articles, 1000);
+            animateValue('unread-articles', 0, stats.unread_articles, 800);
+            animateValue('favorite-articles', 0, stats.favorites || 0, 800);
 
             const avg = stats.total_feeds > 0 ? Math.round(stats.total_articles / stats.total_feeds) : 0;
-            animateValue('avg-articles', 0, avg, 1000);
-
-            // Mise à jour des barres de progression
-            setTimeout(() => {
-                updateProgressBar('feeds-progress', Math.min((stats.active_feeds / Math.max(stats.total_feeds, 1)) * 100, 100));
-                updateProgressBar('articles-progress', Math.min((stats.total_articles / 1000) * 100, 100));
-                updateProgressBar('unread-progress', Math.min((stats.unread_articles / Math.max(stats.total_articles, 1)) * 100, 100));
-                updateProgressBar('favorites-progress', Math.min(((stats.favorites || 0) / Math.max(stats.total_articles, 1)) * 100, 100));
-            }, 500);
-
-            // Mettre à jour les graphiques
-            updateArticlesChart(stats);
+            animateValue('avg-articles', 0, avg, 800);
         }
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -87,155 +73,6 @@ function animateValue(id, start, end, duration) {
     }, 16);
 }
 
-// Mettre à jour une barre de progression
-function updateProgressBar(id, percentage) {
-    const bar = document.getElementById(id);
-    if (bar) {
-        bar.style.width = `${percentage}%`;
-    }
-}
-
-// Initialiser le graphique des articles
-function initArticlesChart() {
-    const ctx = document.getElementById('articlesChart');
-    if (!ctx) return;
-
-    articlesChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Non lus', 'Lus', 'Favoris'],
-            datasets: [{
-                data: [0, 0, 0],
-                backgroundColor: [
-                    'rgba(11, 163, 96, 0.8)',
-                    'rgba(102, 126, 234, 0.8)',
-                    'rgba(240, 152, 25, 0.8)'
-                ],
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 12,
-                            weight: '500'
-                        },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    padding: 12,
-                    borderRadius: 8,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    }
-                }
-            },
-            cutout: '70%',
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 1500,
-                easing: 'easeInOutQuart'
-            }
-        }
-    });
-}
-
-// Mettre à jour le graphique des articles
-function updateArticlesChart(stats) {
-    if (!articlesChart) return;
-
-    const read = stats.total_articles - stats.unread_articles;
-    articlesChart.data.datasets[0].data = [
-        stats.unread_articles,
-        read,
-        stats.favorites || 0
-    ];
-    articlesChart.update();
-}
-
-// Initialiser le graphique des flux
-function initFeedsChart() {
-    const ctx = document.getElementById('feedsChart');
-    if (!ctx) return;
-
-    feedsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Articles',
-                data: [],
-                backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                borderRadius: 8,
-                barThickness: 30
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        font: {
-                            size: 11
-                        }
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 11
-                        }
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    padding: 12,
-                    borderRadius: 8,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    }
-                }
-            },
-            animation: {
-                duration: 1500,
-                easing: 'easeInOutQuart'
-            }
-        }
-    });
-}
-
 // Charger les flux les plus actifs
 async function loadTopFeeds() {
     try {
@@ -247,20 +84,7 @@ async function loadTopFeeds() {
                 .sort((a, b) => b.article_count - a.article_count)
                 .slice(0, 5);
 
-            // Mettre à jour la liste
             updateTopFeedsList(sorted);
-
-            // Mettre à jour le graphique
-            if (feedsChart && sorted.length > 0) {
-                const labels = sorted.map(feed =>
-                    feed.title.length > 20 ? feed.title.substring(0, 20) + '...' : feed.title
-                );
-                const dataValues = sorted.map(feed => feed.article_count);
-
-                feedsChart.data.labels = labels;
-                feedsChart.data.datasets[0].data = dataValues;
-                feedsChart.update();
-            }
         }
     } catch (error) {
         console.error('Error loading top feeds:', error);
@@ -274,7 +98,7 @@ function updateTopFeedsList(feeds) {
 
     if (feeds.length === 0) {
         container.innerHTML = `
-            <div class="empty-state">
+            <div class="empty-message">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -286,21 +110,15 @@ function updateTopFeedsList(feeds) {
         return;
     }
 
-    const maxArticles = Math.max(...feeds.map(f => f.article_count));
-
     container.innerHTML = feeds.map((feed, index) => {
-        const rankClass = index < 3 ? `rank-${index + 1}` : 'rank-other';
-        const percentage = (feed.article_count / maxArticles) * 100;
+        const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
 
         return `
-            <div class="top-feed-item">
+            <div class="feed-item">
                 <div class="feed-rank ${rankClass}">${index + 1}</div>
                 <div class="feed-info">
                     <div class="feed-name">${escapeHtml(feed.title)}</div>
                     <div class="feed-count">${feed.article_count} articles</div>
-                </div>
-                <div class="feed-bar">
-                    <div class="feed-bar-fill" style="width: ${percentage}%"></div>
                 </div>
             </div>
         `;
@@ -342,7 +160,7 @@ document.getElementById('logout-link').addEventListener('click', async (e) => {
 // Bouton actualiser
 document.getElementById('refresh-button').addEventListener('click', async () => {
     const button = document.getElementById('refresh-button');
-    button.classList.add('loading');
+    button.disabled = true;
 
     await Promise.all([
         loadStats(),
@@ -350,7 +168,7 @@ document.getElementById('refresh-button').addEventListener('click', async () => 
     ]);
 
     setTimeout(() => {
-        button.classList.remove('loading');
+        button.disabled = false;
     }, 1000);
 });
 
@@ -358,37 +176,30 @@ document.getElementById('refresh-button').addEventListener('click', async () => 
 document.getElementById('update-all-action').addEventListener('click', async (e) => {
     e.preventDefault();
     const item = e.currentTarget;
-    const icon = item.querySelector('.quick-action-icon');
-    const originalContent = icon.innerHTML;
+    const originalText = item.querySelector('span').textContent;
 
-    icon.innerHTML = `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="40">
-                <animate attributeName="stroke-dashoffset" values="60;0" dur="1s" repeatCount="indefinite"/>
-            </circle>
-        </svg>
-    `;
+    item.querySelector('span').textContent = 'Actualisation...';
+    item.style.pointerEvents = 'none';
 
     try {
         const response = await fetch('/api/feeds/update-all', { method: 'POST' });
         const data = await response.json();
 
         if (data.success) {
-            icon.innerHTML = `
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-            `;
+            item.querySelector('span').textContent = 'Terminé !';
             setTimeout(() => {
-                icon.innerHTML = originalContent;
+                item.querySelector('span').textContent = originalText;
+                item.style.pointerEvents = 'auto';
                 loadStats();
                 loadTopFeeds();
             }, 2000);
         } else {
-            icon.innerHTML = originalContent;
+            item.querySelector('span').textContent = originalText;
+            item.style.pointerEvents = 'auto';
         }
     } catch (error) {
-        icon.innerHTML = originalContent;
+        item.querySelector('span').textContent = originalText;
+        item.style.pointerEvents = 'auto';
     }
 });
 
@@ -396,10 +207,6 @@ document.getElementById('update-all-action').addEventListener('click', async (e)
 document.addEventListener('DOMContentLoaded', async () => {
     // Charger l'utilisateur
     await loadCurrentUser();
-
-    // Initialiser les graphiques
-    initArticlesChart();
-    initFeedsChart();
 
     // Charger les données
     await Promise.all([
