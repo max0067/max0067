@@ -375,25 +375,130 @@ window.manageThemes = function() {
         return;
     }
 
-    let message = 'Vos thèmes :\n\n';
+    let message = 'Gestion des thèmes :\n\n';
     themes.forEach((theme, index) => {
-        message += `${index + 1}. ${theme.icon} ${theme.name} (${theme.count} articles)\n`;
+        const articles = getThemeArticles(theme.id);
+        message += `${index + 1}. ${theme.icon} ${theme.name} (${articles.length} articles)\n`;
     });
-    message += '\nPour supprimer un thème, entrez son numéro (ou 0 pour annuler) :';
+    message += '\nActions :\n';
+    message += '• Modifier : entrez le numéro du thème (ex: 1)\n';
+    message += '• Supprimer : entrez le numéro avec "s" (ex: s1)\n';
+    message += '• Annuler : entrez 0\n\n';
+    message += 'Votre choix :';
 
     const response = prompt(message);
     if (!response || response === '0') return;
 
-    const themeIndex = parseInt(response) - 1;
-    if (themeIndex >= 0 && themeIndex < themes.length) {
-        if (confirm(`Voulez-vous vraiment supprimer le thème "${themes[themeIndex].name}" ?`)) {
-            themes.splice(themeIndex, 1);
-            saveLocalThemes(themes);
-            updateThemesGrid(themes);
-            alert('Thème supprimé avec succès !');
+    // Vérifier si c'est une suppression (commence par "s")
+    if (response.toLowerCase().startsWith('s')) {
+        const themeIndex = parseInt(response.substring(1)) - 1;
+        if (themeIndex >= 0 && themeIndex < themes.length) {
+            const theme = themes[themeIndex];
+            if (confirm(`Voulez-vous vraiment supprimer le thème "${theme.name}" ?\n\nTous les articles de ce thème seront retirés du thème.`)) {
+                // Supprimer les articles du thème
+                localStorage.removeItem(`theme_articles_${theme.id}`);
+                // Supprimer le thème
+                themes.splice(themeIndex, 1);
+                saveLocalThemes(themes);
+                updateThemesGrid(themes);
+                alert('Thème supprimé avec succès !');
+            }
+        } else {
+            alert('Numéro de thème invalide.');
         }
     } else {
-        alert('Numéro de thème invalide.');
+        // C'est une modification
+        const themeIndex = parseInt(response) - 1;
+        if (themeIndex >= 0 && themeIndex < themes.length) {
+            editTheme(themeIndex);
+        } else {
+            alert('Numéro de thème invalide.');
+        }
+    }
+}
+
+// Modifier un thème
+function editTheme(themeIndex) {
+    const themes = getLocalThemes();
+    const theme = themes[themeIndex];
+
+    let message = `Modification du thème "${theme.name}" ${theme.icon}\n\n`;
+    message += 'Que voulez-vous modifier ?\n\n';
+    message += '1. Renommer le thème\n';
+    message += '2. Changer l\'icône\n';
+    message += '3. Changer la couleur\n';
+    message += '0. Annuler\n\n';
+    message += 'Votre choix :';
+
+    const choice = prompt(message);
+    if (!choice || choice === '0') return;
+
+    switch (choice) {
+        case '1':
+            // Renommer
+            const newName = prompt(`Nouveau nom du thème :`, theme.name);
+            if (newName && newName.trim() !== '') {
+                theme.name = newName.trim();
+                saveLocalThemes(themes);
+                updateThemesGrid(themes);
+                alert('Thème renommé avec succès !');
+            }
+            break;
+
+        case '2':
+            // Changer l'icône
+            const icons = ['📁', '⚖️', '📋', '🏛️', '📊', '🔍', '📌', '🔖', '📝', '💼', '🎯', '⭐'];
+            let iconMessage = 'Choisissez une icône :\n\n';
+            icons.forEach((icon, index) => {
+                iconMessage += `${index + 1}. ${icon}\n`;
+            });
+            iconMessage += '\nNuméro de l\'icône :';
+
+            const iconChoice = prompt(iconMessage);
+            if (iconChoice) {
+                const iconIndex = parseInt(iconChoice) - 1;
+                if (iconIndex >= 0 && iconIndex < icons.length) {
+                    theme.icon = icons[iconIndex];
+                    saveLocalThemes(themes);
+                    updateThemesGrid(themes);
+                    alert('Icône changée avec succès !');
+                }
+            }
+            break;
+
+        case '3':
+            // Changer la couleur
+            const colors = [
+                { name: 'Bleu', value: '#3B82F6' },
+                { name: 'Orange', value: '#F97316' },
+                { name: 'Jaune', value: '#EAB308' },
+                { name: 'Vert', value: '#22C55E' },
+                { name: 'Violet', value: '#A855F7' },
+                { name: 'Teal', value: '#14B8A6' },
+                { name: 'Rose', value: '#EC4899' },
+                { name: 'Rouge', value: '#EF4444' }
+            ];
+
+            let colorMessage = 'Choisissez une couleur :\n\n';
+            colors.forEach((color, index) => {
+                colorMessage += `${index + 1}. ${color.name}\n`;
+            });
+            colorMessage += '\nNuméro de la couleur :';
+
+            const colorChoice = prompt(colorMessage);
+            if (colorChoice) {
+                const colorIndex = parseInt(colorChoice) - 1;
+                if (colorIndex >= 0 && colorIndex < colors.length) {
+                    theme.color = colors[colorIndex].value;
+                    saveLocalThemes(themes);
+                    updateThemesGrid(themes);
+                    alert('Couleur changée avec succès !');
+                }
+            }
+            break;
+
+        default:
+            alert('Choix invalide.');
     }
 }
 

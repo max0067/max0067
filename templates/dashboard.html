@@ -189,6 +189,38 @@
                 </div>
             </div>
 
+            <!-- Favoris par thème -->
+            <div class="themes-section">
+                <div class="section-header">
+                    <h2 class="section-title">📁 Mes favoris par thème</h2>
+                    <div class="themes-actions">
+                        <button class="btn-add-theme-header" onclick="createNewTheme()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Créer un thème
+                        </button>
+                        <button class="btn-manage-themes" id="manage-themes-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v6m0 6v6m6-12h-6m-6 0H0m6 6H0m18 0h-6"></path>
+                            </svg>
+                            Gérer
+                        </button>
+                    </div>
+                </div>
+                <div class="themes-grid" id="themes-grid">
+                    <div class="empty-message">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <p>Aucun favori classé par thème</p>
+                        <button class="btn-add-theme" onclick="createNewTheme()">Créer un thème</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Alertes importantes -->
             <div class="alerts-section">
                 <div class="section-header">
@@ -203,29 +235,6 @@
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
                         <p>Aucune alerte pour le moment</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Favoris par thème -->
-            <div class="themes-section">
-                <div class="section-header">
-                    <h2 class="section-title">📁 Mes favoris par thème</h2>
-                    <button class="btn-manage-themes" id="manage-themes-btn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6m6-12h-6m-6 0H0m6 6H0m18 0h-6"></path>
-                        </svg>
-                        Gérer les thèmes
-                    </button>
-                </div>
-                <div class="themes-grid" id="themes-grid">
-                    <div class="empty-message">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        <p>Aucun favori classé par thème</p>
-                        <button class="btn-add-theme" onclick="createNewTheme()">Créer un thème</button>
                     </div>
                 </div>
             </div>

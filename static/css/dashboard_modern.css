@@ -378,8 +378,15 @@
     color: var(--text-secondary);
 }
 
+.themes-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .btn-manage-themes,
-.btn-add-theme {
+.btn-add-theme,
+.btn-add-theme-header {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -392,6 +399,19 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+.btn-add-theme-header {
+    background: var(--color-blue);
+    color: white;
+    border-color: var(--color-blue);
+}
+
+.btn-add-theme-header:hover {
+    background: #2563EB;
+    border-color: #2563EB;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-manage-themes:hover,
