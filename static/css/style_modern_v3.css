@@ -317,9 +317,12 @@ body {
     border-radius: var(--radius-xl);
     padding: var(--spacing-md);
     box-shadow: var(--shadow-sm);
-    height: fit-content;
     position: sticky;
     top: calc(70px + var(--spacing-lg));
+    max-height: calc(100vh - 70px - var(--spacing-lg) * 2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .sidebar-header {
@@ -327,6 +330,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-md);
+    flex-shrink: 0;
 }
 
 .sidebar-header h2 {
@@ -341,6 +345,7 @@ body {
     grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-xs);
     margin-bottom: var(--spacing-md);
+    flex-shrink: 0;
 }
 
 .stat-item {
@@ -380,6 +385,7 @@ body {
     flex-direction: column;
     gap: var(--spacing-xs);
     margin-bottom: var(--spacing-md);
+    flex-shrink: 0;
 }
 
 /* Liste des flux ultra-moderne */
@@ -387,29 +393,30 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-height: 500px;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.5rem;
+    flex: 1;
+    min-height: 0;
 }
 
-/* Scrollbar personnalisée */
+/* Scrollbar personnalisée VIOLET */
 .feeds-list::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .feeds-list::-webkit-scrollbar-track {
     background: var(--bg-secondary);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .feeds-list::-webkit-scrollbar-thumb {
-    background: var(--primary-light);
-    border-radius: 3px;
+    background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+    border-radius: 4px;
 }
 
 .feeds-list::-webkit-scrollbar-thumb:hover {
-    background: var(--primary);
+    background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
 }
 
 .feed-item {

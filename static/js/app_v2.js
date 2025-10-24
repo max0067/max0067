@@ -24,6 +24,54 @@ const elements = {
     searchStats: document.getElementById('search-stats')
 };
 
+// ===== Gestion des Tags Colorés (DOIT ÊTRE AVANT createArticleElement) =====
+
+// Tags par défaut
+function getDefaultTags() {
+    return [
+        { id: 'urgent', name: 'Urgent', color: '#EF4444' },
+        { id: 'important', name: 'Important', color: '#F97316' },
+        { id: 'a-lire', name: 'À lire', color: '#3B82F6' },
+        { id: 'archive', name: 'Archive', color: '#6B7280' }
+    ];
+}
+
+// Récupérer les tags depuis localStorage
+function getUserTags() {
+    const saved = localStorage.getItem('user_tags');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return getDefaultTags();
+        }
+    }
+    return getDefaultTags();
+}
+
+// Sauvegarder les tags
+function saveUserTags(tags) {
+    localStorage.setItem('user_tags', JSON.stringify(tags));
+}
+
+// Récupérer les tags d'un article
+function getArticleTags(articleId) {
+    const saved = localStorage.getItem(`article_tags_${articleId}`);
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
+// Sauvegarder les tags d'un article
+function saveArticleTags(articleId, tagIds) {
+    localStorage.setItem(`article_tags_${articleId}`, JSON.stringify(tagIds));
+}
+
 // ===== Initialisation =====
 document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentUser();
@@ -824,53 +872,7 @@ function addArticleToTheme(themeId, articleId, articleTitle) {
     }
 }
 
-// ===== Gestion des Tags Color és =====
-
-// Récupérer les tags depuis localStorage
-function getUserTags() {
-    const saved = localStorage.getItem('user_tags');
-    if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch (e) {
-            return getDefaultTags();
-        }
-    }
-    return getDefaultTags();
-}
-
-// Tags par défaut
-function getDefaultTags() {
-    return [
-        { id: 'urgent', name: 'Urgent', color: '#EF4444' },
-        { id: 'important', name: 'Important', color: '#F97316' },
-        { id: 'a-lire', name: 'À lire', color: '#3B82F6' },
-        { id: 'archive', name: 'Archive', color: '#6B7280' }
-    ];
-}
-
-// Sauvegarder les tags
-function saveUserTags(tags) {
-    localStorage.setItem('user_tags', JSON.stringify(tags));
-}
-
-// Récupérer les tags d'un article
-function getArticleTags(articleId) {
-    const saved = localStorage.getItem(`article_tags_${articleId}`);
-    if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch (e) {
-            return [];
-        }
-    }
-    return [];
-}
-
-// Sauvegarder les tags d'un article
-function saveArticleTags(articleId, tagIds) {
-    localStorage.setItem(`article_tags_${articleId}`, JSON.stringify(tagIds));
-}
+// ===== Gestion des Tags Colorés - Fonctions d'action =====
 
 // Retirer un tag d'un article
 window.removeTagFromArticle = function(articleId, tagId) {

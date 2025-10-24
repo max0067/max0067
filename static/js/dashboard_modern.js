@@ -362,8 +362,8 @@ window.createNewTheme = function() {
 
 // Ouvrir un thème
 window.openTheme = function(themeId) {
-    // Rediriger vers la page des favoris avec le filtre du thème
-    window.location.href = `/#favorites?theme=${themeId}`;
+    // Rediriger vers la page d'accueil avec le filtre du thème
+    window.location.href = `/?theme=${themeId}`;
 }
 
 // Gérer les thèmes

@@ -4,7 +4,7 @@
 
 :root {
     /* Couleurs principales */
-    --color-blue: #3B82F6;
+    --color-blue: #8B5CF6;
     --color-orange: #F97316;
     --color-yellow: #EAB308;
     --color-green: #22C55E;
@@ -402,14 +402,14 @@
 }
 
 .btn-add-theme-header {
-    background: var(--color-blue);
+    background: #8B5CF6;
     color: white;
-    border-color: var(--color-blue);
+    border-color: #8B5CF6;
 }
 
 .btn-add-theme-header:hover {
-    background: #2563EB;
-    border-color: #2563EB;
+    background: #7C3AED;
+    border-color: #7C3AED;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
