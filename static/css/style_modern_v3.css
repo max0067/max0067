@@ -387,6 +387,29 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.5rem;
+}
+
+/* Scrollbar personnalisée */
+.feeds-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.feeds-list::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 3px;
+}
+
+.feeds-list::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 3px;
+}
+
+.feeds-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 
 .feed-item {
@@ -648,6 +671,133 @@ body {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Tags colorés personnalisés */
+.article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--spacing-sm);
+}
+
+.article-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.article-tag:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-sm);
+}
+
+.article-tag-remove {
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.article-tag-remove:hover {
+    opacity: 1;
+}
+
+.btn-add-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--border);
+    color: var(--text-secondary);
+    border: 1px dashed var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-tag:hover {
+    background: var(--primary-light);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Gestion des tags */
+.tags-manager {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+}
+
+.tags-manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.tags-manager-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.tag-item-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.tag-item-action {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.tag-item-action:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
 }
 
 /* ==========================================

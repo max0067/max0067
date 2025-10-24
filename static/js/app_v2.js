@@ -298,6 +298,28 @@ function createArticleElement(article) {
           })
         : '';
 
+    // Récupérer les tags de l'article
+    const articleTagIds = getArticleTags(article.id);
+    const allTags = getUserTags();
+    const articleTags = articleTagIds.map(tagId => allTags.find(t => t.id === tagId)).filter(Boolean);
+
+    // Construire le HTML des tags
+    let tagsHtml = '<div class="article-tags">';
+    articleTags.forEach(tag => {
+        tagsHtml += `
+            <span class="article-tag" style="background: ${tag.color}" onclick="event.stopPropagation()">
+                ${escapeHtml(tag.name)}
+                <span class="article-tag-remove" onclick="removeTagFromArticle(${article.id}, '${tag.id}')">✕</span>
+            </span>
+        `;
+    });
+    tagsHtml += `
+        <button class="btn-add-tag" onclick="event.stopPropagation(); addTagToArticle(${article.id}, '${escapeHtml(article.title).replace(/'/g, "\\'")}')">
+            + Tag
+        </button>
+    `;
+    tagsHtml += '</div>';
+
     div.innerHTML = `
         <div class="article-item-header">
             <div class="article-item-title">${escapeHtml(article.title)}</div>
@@ -312,10 +334,14 @@ function createArticleElement(article) {
             ${article.author ? `<span>Par ${escapeHtml(article.author)}</span>` : ''}
         </div>
         ${article.description ? `<div class="article-item-description">${escapeHtml(article.description)}</div>` : ''}
+        ${tagsHtml}
     `;
 
     div.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('article-favorite') && !e.target.classList.contains('article-folder')) {
+        if (!e.target.classList.contains('article-favorite') &&
+            !e.target.classList.contains('article-folder') &&
+            !e.target.classList.contains('btn-add-tag') &&
+            !e.target.classList.contains('article-tag-remove')) {
             showArticleDetail(article);
         }
     });
@@ -795,6 +821,218 @@ function addArticleToTheme(themeId, articleId, articleTitle) {
         // Mettre à jour le compteur
         theme.count = articles.length;
         saveLocalThemes(themes);
+    }
+}
+
+// ===== Gestion des Tags Color és =====
+
+// Récupérer les tags depuis localStorage
+function getUserTags() {
+    const saved = localStorage.getItem('user_tags');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return getDefaultTags();
+        }
+    }
+    return getDefaultTags();
+}
+
+// Tags par défaut
+function getDefaultTags() {
+    return [
+        { id: 'urgent', name: 'Urgent', color: '#EF4444' },
+        { id: 'important', name: 'Important', color: '#F97316' },
+        { id: 'a-lire', name: 'À lire', color: '#3B82F6' },
+        { id: 'archive', name: 'Archive', color: '#6B7280' }
+    ];
+}
+
+// Sauvegarder les tags
+function saveUserTags(tags) {
+    localStorage.setItem('user_tags', JSON.stringify(tags));
+}
+
+// Récupérer les tags d'un article
+function getArticleTags(articleId) {
+    const saved = localStorage.getItem(`article_tags_${articleId}`);
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
+// Sauvegarder les tags d'un article
+function saveArticleTags(articleId, tagIds) {
+    localStorage.setItem(`article_tags_${articleId}`, JSON.stringify(tagIds));
+}
+
+// Retirer un tag d'un article
+window.removeTagFromArticle = function(articleId, tagId) {
+    const articleTags = getArticleTags(articleId);
+    const newTags = articleTags.filter(id => id !== tagId);
+    saveArticleTags(articleId, newTags);
+
+    const allTags = getUserTags();
+    const tag = allTags.find(t => t.id === tagId);
+    if (tag) {
+        showNotification(`Tag "${tag.name}" retiré`, 'success');
+    }
+
+    renderArticles();
+}
+
+// Ajouter un tag à un article
+window.addTagToArticle = function(articleId, articleTitle) {
+    const tags = getUserTags();
+    const articleTags = getArticleTags(articleId);
+
+    if (tags.length === 0) {
+        if (confirm('Vous n\'avez pas encore de tags.\nVoulez-vous en créer un maintenant ?')) {
+            createNewTag(() => {
+                addTagToArticle(articleId, articleTitle);
+            });
+        }
+        return;
+    }
+
+    let message = `Ajouter un tag à "${articleTitle.substring(0, 50)}..." :\n\n`;
+    tags.forEach((tag, index) => {
+        const hasTag = articleTags.includes(tag.id);
+        const mark = hasTag ? '✓ ' : '';
+        message += `${index + 1}. ${mark}${tag.name}\n`;
+    });
+    message += '\n0. Créer un nouveau tag\n';
+    message += '\nEntrez le numéro (ou Annuler) :';
+
+    const response = prompt(message);
+    if (!response) return;
+
+    if (response === '0') {
+        createNewTag(() => {
+            addTagToArticle(articleId, articleTitle);
+        });
+        return;
+    }
+
+    const tagIndex = parseInt(response) - 1;
+    if (tagIndex >= 0 && tagIndex < tags.length) {
+        const tag = tags[tagIndex];
+        const hasTag = articleTags.includes(tag.id);
+
+        if (hasTag) {
+            // Retirer le tag
+            const newTags = articleTags.filter(id => id !== tag.id);
+            saveArticleTags(articleId, newTags);
+            showNotification(`Tag "${tag.name}" retiré`, 'success');
+        } else {
+            // Ajouter le tag
+            articleTags.push(tag.id);
+            saveArticleTags(articleId, articleTags);
+            showNotification(`Tag "${tag.name}" ajouté`, 'success');
+        }
+
+        // Recharger les articles pour montrer le changement
+        renderArticles();
+    }
+}
+
+// Créer un nouveau tag
+function createNewTag(callback) {
+    const name = prompt('Nom du tag :');
+    if (!name || name.trim() === '') return;
+
+    const colors = [
+        { name: 'Rouge', value: '#EF4444' },
+        { name: 'Orange', value: '#F97316' },
+        { name: 'Jaune', value: '#F59E0B' },
+        { name: 'Vert', value: '#10B981' },
+        { name: 'Bleu', value: '#3B82F6' },
+        { name: 'Indigo', value: '#6366F1' },
+        { name: 'Violet', value: '#8B5CF6' },
+        { name: 'Rose', value: '#EC4899' },
+        { name: 'Gris', value: '#6B7280' }
+    ];
+
+    let colorMessage = 'Choisissez une couleur :\n\n';
+    colors.forEach((color, index) => {
+        colorMessage += `${index + 1}. ${color.name}\n`;
+    });
+
+    const colorResponse = prompt(colorMessage);
+    if (!colorResponse) return;
+
+    const colorIndex = parseInt(colorResponse) - 1;
+    if (colorIndex >= 0 && colorIndex < colors.length) {
+        const tags = getUserTags();
+        const newTag = {
+            id: 'tag_' + Date.now(),
+            name: name.trim(),
+            color: colors[colorIndex].value
+        };
+
+        tags.push(newTag);
+        saveUserTags(tags);
+        showNotification(`Tag "${newTag.name}" créé avec succès !`, 'success');
+
+        if (callback) callback();
+    }
+}
+
+// Gérer les tags
+window.manageTags = function() {
+    const tags = getUserTags();
+
+    if (tags.length === 0) {
+        alert('Vous n\'avez pas encore de tags.\nCliquez sur "Créer un tag" pour commencer !');
+        return;
+    }
+
+    let message = 'Gestion des tags :\n\n';
+    tags.forEach((tag, index) => {
+        message += `${index + 1}. ${tag.name} (${tag.color})\n`;
+    });
+    message += '\nActions :\n';
+    message += '• Modifier : entrez le numéro du tag (ex: 1)\n';
+    message += '• Supprimer : entrez le numéro avec "s" (ex: s1)\n';
+    message += '• Annuler : entrez 0\n\n';
+    message += 'Votre choix :';
+
+    const response = prompt(message);
+    if (!response || response === '0') return;
+
+    if (response.toLowerCase().startsWith('s')) {
+        const tagIndex = parseInt(response.substring(1)) - 1;
+        if (tagIndex >= 0 && tagIndex < tags.length) {
+            if (confirm(`Voulez-vous vraiment supprimer le tag "${tags[tagIndex].name}" ?`)) {
+                tags.splice(tagIndex, 1);
+                saveUserTags(tags);
+                showNotification('Tag supprimé avec succès !', 'success');
+            }
+        }
+    } else {
+        const tagIndex = parseInt(response) - 1;
+        if (tagIndex >= 0 && tagIndex < tags.length) {
+            editTag(tagIndex);
+        }
+    }
+}
+
+// Modifier un tag
+function editTag(tagIndex) {
+    const tags = getUserTags();
+    const tag = tags[tagIndex];
+
+    const newName = prompt('Nouveau nom du tag :', tag.name);
+    if (newName && newName.trim() !== '') {
+        tag.name = newName.trim();
+        saveUserTags(tags);
+        showNotification('Tag modifié avec succès !', 'success');
     }
 }
 
