@@ -11,13 +11,14 @@ const state = {
 
 // ===== Éléments du DOM =====
 const elements = {
-    feedsGridHome: document.getElementById('feeds-grid-home'),
+    articlesList: document.getElementById('articles-list'),
     loading: document.getElementById('loading'),
-    noFeeds: document.getElementById('no-feeds'),
+    noArticles: document.getElementById('no-articles'),
     articleModal: document.getElementById('article-modal'),
     searchInput: document.getElementById('search-input'),
     searchClear: document.getElementById('search-clear'),
-    searchStats: document.getElementById('search-stats')
+    searchStats: document.getElementById('search-stats'),
+    articlesTitle: document.getElementById('articles-title')
 };
 
 // ===== Gestion des Tags Colorés (DOIT ÊTRE AVANT createArticleElement) =====
@@ -73,9 +74,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentUser();
     initializeEventListeners();
     loadFeeds();
+    loadArticles();
 
-    // Sur la page d'accueil, on affiche seulement les flux
-    // Les articles ne sont plus affichés
+    // Gérer les favoris depuis l'URL
+    if (window.location.hash === '#favorites') {
+        showFavorites();
+    }
 });
 
 // ===== Authentification =====
@@ -116,12 +120,27 @@ async function logout() {
 
 // ===== Gestionnaires d'événements =====
 function initializeEventListeners() {
+    // Filtre non lus
+    const filterUnread = document.getElementById('filter-unread');
+    if (filterUnread) {
+        filterUnread.addEventListener('change', handleUnreadFilter);
+    }
+
     // Recherche
     if (elements.searchInput) {
         elements.searchInput.addEventListener('input', handleSearch);
     }
     if (elements.searchClear) {
         elements.searchClear.addEventListener('click', clearSearch);
+    }
+
+    // Favoris
+    const favLink = document.getElementById('favorites-link');
+    if (favLink) {
+        favLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showFavorites();
+        });
     }
 
     // Menu utilisateur
@@ -183,8 +202,11 @@ function handleSearch(e) {
         }
     }
 
-    // Sur la page d'accueil, on ne recherche pas d'articles
-    // La recherche ne fonctionne que sur les pages avec liste d'articles
+    // Debounce
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        loadArticles();
+    }, 300);
 }
 
 function clearSearch() {
@@ -192,6 +214,12 @@ function clearSearch() {
     state.searchQuery = '';
     if (elements.searchClear) elements.searchClear.style.display = 'none';
     if (elements.searchStats) elements.searchStats.textContent = '';
+    loadArticles();
+}
+
+function handleUnreadFilter(e) {
+    state.unreadOnly = e.target.checked;
+    loadArticles();
 }
 
 // ===== API: Charger les flux =====
@@ -202,8 +230,7 @@ async function loadFeeds() {
 
         if (data.success) {
             state.feeds = data.feeds;
-            renderFeeds();
-            updateSidebarStats();
+            // Pas d'affichage des flux sur l'accueil
         }
     } catch (error) {
         console.error('Erreur lors du chargement des flux:', error);

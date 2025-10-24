@@ -78,10 +78,21 @@
         </div>
 
         <!-- Contenu principal -->
-        <div class="main-content-home">
-            <!-- Grille des flux RSS -->
-            <div id="feeds-grid-home" class="feeds-grid-home">
-                <!-- Les flux seront affichés ici -->
+        <div class="main-content-simple">
+            <!-- En-tête avec filtres -->
+            <div class="content-header">
+                <h2 id="articles-title">Tous les articles</h2>
+                <div class="filters">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filter-unread">
+                        <span>Non lus seulement</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Liste des articles -->
+            <div id="articles-list" class="articles-list">
+                <!-- Les articles seront affichés ici -->
             </div>
 
             <div id="loading" class="loading" style="display: none;">
@@ -89,10 +100,10 @@
                 <p>Chargement...</p>
             </div>
 
-            <div id="no-feeds" class="no-content" style="display: none;">
-                <div class="empty-icon">📡</div>
-                <p>Aucun flux RSS configuré</p>
-                <p class="empty-subtitle">Utilisez "Gérer les flux" dans le menu pour en ajouter</p>
+            <div id="no-articles" class="no-content" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <p>Aucun article à afficher</p>
+                <p class="empty-subtitle">Vos articles RSS apparaîtront ici</p>
             </div>
         </div>
     </div>
