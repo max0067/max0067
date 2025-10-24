@@ -11,14 +11,10 @@ const state = {
 
 // ===== Éléments du DOM =====
 const elements = {
-    feedsList: document.getElementById('feeds-list'),
-    articlesList: document.getElementById('articles-list'),
-    feedModal: document.getElementById('feed-modal'),
-    articleModal: document.getElementById('article-modal'),
-    feedForm: document.getElementById('feed-form'),
+    feedsGridHome: document.getElementById('feeds-grid-home'),
     loading: document.getElementById('loading'),
-    noArticles: document.getElementById('no-articles'),
-    articlesTitle: document.getElementById('articles-title'),
+    noFeeds: document.getElementById('no-feeds'),
+    articleModal: document.getElementById('article-modal'),
     searchInput: document.getElementById('search-input'),
     searchClear: document.getElementById('search-clear'),
     searchStats: document.getElementById('search-stats')
@@ -123,38 +119,29 @@ async function logout() {
 
 // ===== Gestionnaires d'événements =====
 function initializeEventListeners() {
-    // Boutons principaux
-    document.getElementById('btn-add-feed').addEventListener('click', () => openFeedModal());
-    document.getElementById('btn-update-all').addEventListener('click', updateAllFeeds);
-    document.getElementById('btn-show-all').addEventListener('click', showAllArticles);
-    document.getElementById('btn-cancel').addEventListener('click', closeFeedModal);
-    document.getElementById('filter-unread').addEventListener('change', handleUnreadFilter);
-
     // Recherche
-    elements.searchInput.addEventListener('input', handleSearch);
-    elements.searchClear.addEventListener('click', clearSearch);
-
-    // Favoris
-    const favLink = document.getElementById('favorites-link');
-    if (favLink) {
-        favLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showFavorites();
-        });
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener('input', handleSearch);
+    }
+    if (elements.searchClear) {
+        elements.searchClear.addEventListener('click', clearSearch);
     }
 
     // Menu utilisateur
-    document.getElementById('user-menu-button').addEventListener('click', toggleUserMenu);
+    const userMenuButton = document.getElementById('user-menu-button');
+    if (userMenuButton) {
+        userMenuButton.addEventListener('click', toggleUserMenu);
+    }
     document.addEventListener('click', closeUserMenuOutside);
 
     // Déconnexion
-    document.getElementById('logout-link').addEventListener('click', (e) => {
-        e.preventDefault();
-        logout();
-    });
-
-    // Formulaire flux
-    elements.feedForm.addEventListener('submit', handleFeedSubmit);
+    const logoutLink = document.getElementById('logout-link');
+    if (logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    }
 
     // Fermer les modals
     document.querySelectorAll('.modal-close').forEach(btn => {
@@ -266,67 +253,55 @@ async function loadArticles() {
     }
 }
 
-// ===== Afficher les flux =====
+// ===== Afficher les flux dans la grille d'accueil =====
 function renderFeeds() {
-    if (!elements.feedsList) return;
+    if (!elements.feedsGridHome) return;
 
-    elements.feedsList.innerHTML = '';
+    elements.feedsGridHome.innerHTML = '';
 
     if (state.feeds.length === 0) {
-        elements.feedsList.innerHTML = '<div class="no-content">Aucun flux</div>';
+        elements.feedsGridHome.style.display = 'none';
+        elements.noFeeds.style.display = 'block';
         return;
     }
 
+    elements.feedsGridHome.style.display = 'grid';
+    elements.noFeeds.style.display = 'none';
+
     state.feeds.forEach(feed => {
-        const feedElement = createFeedElement(feed);
-        elements.feedsList.appendChild(feedElement);
+        const feedCard = createFeedCardHome(feed);
+        elements.feedsGridHome.appendChild(feedCard);
     });
 }
 
-// ===== Créer un élément de flux =====
-function createFeedElement(feed) {
-    const div = document.createElement('div');
-    div.className = `feed-item ${feed.active ? '' : 'inactive'} ${state.currentFeedId === feed.id ? 'active' : ''}`;
+// ===== Créer une carte de flux pour l'accueil =====
+function createFeedCardHome(feed) {
+    const card = document.createElement('div');
+    card.className = 'feed-card-home';
 
-    div.innerHTML = `
-        <div class="feed-item-header">
-            <span class="feed-item-title">${escapeHtml(feed.title || 'Sans titre')}</span>
-            <span class="feed-item-count">${feed.article_count || 0}</span>
-        </div>
-        ${feed.description ? `<div class="feed-item-description">${escapeHtml(feed.description)}</div>` : ''}
-        <div class="feed-item-actions">
-            <button class="feed-action-btn" data-action="update" data-feed-id="${feed.id}" title="Actualiser">🔄</button>
-            <button class="feed-action-btn" data-action="edit" data-feed-id="${feed.id}" title="Modifier">✏️</button>
-            <button class="feed-action-btn" data-action="delete" data-feed-id="${feed.id}" title="Supprimer">🗑️</button>
+    const statusBadge = feed.active
+        ? '<span class="feed-card-home-badge active">Actif</span>'
+        : '<span class="feed-card-home-badge inactive">Inactif</span>';
+
+    card.innerHTML = `
+        <div class="feed-card-home-icon">📡</div>
+        <div class="feed-card-home-title">${escapeHtml(feed.title || 'Sans titre')}</div>
+        ${feed.description ? `<div class="feed-card-home-description">${escapeHtml(feed.description)}</div>` : ''}
+        <div class="feed-card-home-footer">
+            <div class="feed-card-home-count">
+                <span class="feed-card-home-count-value">${feed.article_count || 0}</span>
+                <span>articles</span>
+            </div>
+            ${statusBadge}
         </div>
     `;
 
-    div.addEventListener('click', (e) => {
-        // Trouver si on a cliqué sur un bouton ou un enfant d'un bouton
-        const button = e.target.closest('button');
-
-        if (button && button.classList.contains('feed-action-btn')) {
-            e.stopPropagation();
-            e.preventDefault();
-            const action = button.dataset.action;
-            const feedId = parseInt(button.dataset.feedId);
-
-            console.log('Action déclenchée:', action, 'pour feedId:', feedId);
-
-            if (action === 'update') {
-                updateFeed(feedId);
-            } else if (action === 'edit') {
-                editFeed(feedId);
-            } else if (action === 'delete') {
-                deleteFeed(feedId);
-            }
-        } else {
-            // Clic sur le flux lui-même
-            showFeedArticles(feed.id, feed.title);
-        }
+    // Rediriger vers la page de gestion des flux au clic
+    card.addEventListener('click', () => {
+        window.location.href = '/feeds';
     });
 
-    return div;
+    return card;
 }
 
 // ===== Afficher les articles =====

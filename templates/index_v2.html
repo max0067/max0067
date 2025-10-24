@@ -78,112 +78,28 @@
         </div>
 
         <!-- Contenu principal -->
-        <div class="main-content">
-            <!-- Barre latérale -->
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <h2>📁 Mes flux RSS</h2>
-                    <button id="btn-add-feed" class="btn btn-primary btn-sm">+ Ajouter</button>
-                </div>
-
-                <div class="sidebar-stats" id="sidebar-stats">
-                    <div class="stat-item">
-                        <span class="stat-value" id="stat-feeds">0</span>
-                        <span class="stat-label">flux</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="stat-articles">0</span>
-                        <span class="stat-label">articles</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="stat-unread">0</span>
-                        <span class="stat-label">non lus</span>
-                    </div>
-                </div>
-
-                <div class="sidebar-actions">
-                    <button id="btn-update-all" class="btn btn-secondary btn-block">🔄 Tout actualiser</button>
-                    <button id="btn-show-all" class="btn btn-secondary btn-block">📰 Tous les articles</button>
-                </div>
-
-                <div id="feeds-list" class="feeds-list">
-                    <!-- Les flux seront affichés ici -->
-                </div>
-            </aside>
-
-            <!-- Zone des articles -->
-            <main class="content">
-                <div class="content-header">
-                    <h2 id="articles-title">Tous les articles</h2>
-                    <div class="filters">
-                        <label class="filter-checkbox">
-                            <input type="checkbox" id="filter-unread">
-                            <span>Non lus seulement</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div id="articles-list" class="articles-list">
-                    <!-- Les articles seront affichés ici -->
-                </div>
-
-                <div id="loading" class="loading" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Chargement...</p>
-                </div>
-
-                <div id="no-articles" class="no-content" style="display: none;">
-                    <div class="empty-icon">📭</div>
-                    <p>Aucun article à afficher</p>
-                    <p class="empty-subtitle">Ajoutez des flux RSS pour commencer</p>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Modal pour ajouter/modifier un flux -->
-    <div id="feed-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title">Ajouter un flux RSS</h2>
-                <button class="modal-close">&times;</button>
+        <div class="main-content-home">
+            <!-- En-tête de l'accueil -->
+            <div class="home-header">
+                <h1 class="home-title">📰 Mes flux RSS</h1>
+                <p class="home-subtitle">Sélectionnez un flux pour voir ses articles</p>
             </div>
 
-            <form id="feed-form">
-                <input type="hidden" id="feed-id">
+            <!-- Grille des flux RSS -->
+            <div id="feeds-grid-home" class="feeds-grid-home">
+                <!-- Les flux seront affichés ici -->
+            </div>
 
-                <div class="form-group">
-                    <label for="feed-title">Titre du flux</label>
-                    <input type="text" id="feed-title" placeholder="Ex: TechCrunch, Le Monde..." required>
-                </div>
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Chargement...</p>
+            </div>
 
-                <div class="form-group">
-                    <label for="feed-url">URL du flux RSS</label>
-                    <input type="url" id="feed-url" placeholder="https://example.com/feed.xml" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="feed-description">Description (optionnel)</label>
-                    <textarea id="feed-description" placeholder="Description du flux..." rows="3"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="feed-interval">Intervalle de mise à jour (minutes)</label>
-                    <input type="number" id="feed-interval" min="5" value="30">
-                </div>
-
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="feed-active" checked>
-                        <span>Flux actif (mise à jour automatique)</span>
-                    </label>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
-                    <button type="button" class="btn btn-secondary" id="btn-cancel">Annuler</button>
-                </div>
-            </form>
+            <div id="no-feeds" class="no-content" style="display: none;">
+                <div class="empty-icon">📡</div>
+                <p>Aucun flux RSS configuré</p>
+                <p class="empty-subtitle">Utilisez "Gérer les flux" dans le menu pour en ajouter</p>
+            </div>
         </div>
     </div>
 
