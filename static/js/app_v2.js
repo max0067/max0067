@@ -7,7 +7,10 @@ const state = {
     unreadOnly: false,
     searchQuery: '',
     favorites: false,
-    currentTagId: null
+    currentTagId: null,
+    offset: 0,
+    hasMore: true,
+    isLoading: false
 };
 
 // ===== Éléments du DOM =====
@@ -70,10 +73,60 @@ function saveArticleTags(articleId, tagIds) {
     localStorage.setItem(`article_tags_${articleId}`, JSON.stringify(tagIds));
 }
 
+// ===== Mettre à jour le compteur d'articles non lus =====
+async function updateUnreadCount() {
+    try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+
+        if (data.success && data.stats) {
+            const unreadCount = data.stats.unread_articles || 0;
+            const badge = document.getElementById('unread-badge');
+
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du compteur:', error);
+    }
+}
+
+// ===== Infinite Scroll =====
+function setupInfiniteScroll() {
+    let isScrolling;
+
+    window.addEventListener('scroll', () => {
+        // Clear notre timeout tout au long du scroll
+        window.clearTimeout(isScrolling);
+
+        // Définir un nouveau timeout pour s'exécuter après que le scroll s'arrête
+        isScrolling = setTimeout(() => {
+            // Vérifier si on est près du bas de la page (à 300px)
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            if (scrollTop + windowHeight >= documentHeight - 300) {
+                // Charger plus d'articles si disponible
+                if (state.hasMore && !state.isLoading) {
+                    loadArticles(true); // true = mode append
+                }
+            }
+        }, 100);
+    });
+}
+
 // ===== Initialisation =====
 document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentUser();
     initializeEventListeners();
+    setupInfiniteScroll();
     loadFeeds();
 
     // Gérer les paramètres URL
@@ -91,6 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     loadArticles();
+    updateUnreadCount(); // Mettre à jour le compteur au chargement
 
     // Gérer les favoris depuis l'URL
     if (window.location.hash === '#favorites') {
@@ -148,6 +202,12 @@ function initializeEventListeners() {
     }
     if (elements.searchClear) {
         elements.searchClear.addEventListener('click', clearSearch);
+    }
+
+    // Marquer tout comme lu
+    const btnMarkAllRead = document.getElementById('btn-mark-all-read');
+    if (btnMarkAllRead) {
+        btnMarkAllRead.addEventListener('click', markAllArticlesAsRead);
     }
 
     // Favoris
@@ -221,6 +281,8 @@ function handleSearch(e) {
     // Debounce
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
+        state.offset = 0;
+        state.hasMore = true;
         loadArticles();
     }, 300);
 }
@@ -228,6 +290,8 @@ function handleSearch(e) {
 function clearSearch() {
     if (elements.searchInput) elements.searchInput.value = '';
     state.searchQuery = '';
+    state.offset = 0;
+    state.hasMore = true;
     if (elements.searchClear) elements.searchClear.style.display = 'none';
     if (elements.searchStats) elements.searchStats.textContent = '';
     loadArticles();
@@ -235,6 +299,8 @@ function clearSearch() {
 
 function handleUnreadFilter(e) {
     state.unreadOnly = e.target.checked;
+    state.offset = 0;
+    state.hasMore = true;
     loadArticles();
 }
 
@@ -255,11 +321,17 @@ async function loadFeeds() {
 }
 
 // ===== API: Charger les articles =====
-async function loadArticles() {
+async function loadArticles(append = false) {
+    if (state.isLoading) return;
+
+    state.isLoading = true;
     showLoading();
 
     try {
-        let url = `/api/articles?limit=100`;
+        const limit = 50; // Charger 50 articles à la fois
+        const offset = append ? state.offset : 0;
+
+        let url = `/api/articles?limit=${limit}&offset=${offset}`;
         if (state.currentFeedId) url += `&feed_id=${state.currentFeedId}`;
         if (state.unreadOnly) url += `&unread_only=true`;
         if (state.searchQuery) url += `&search=${encodeURIComponent(state.searchQuery)}`;
@@ -268,21 +340,32 @@ async function loadArticles() {
         const data = await response.json();
 
         if (data.success) {
-            state.articles = data.articles;
+            let newArticles = data.articles;
 
             if (state.favorites) {
-                state.articles = state.articles.filter(a => a.favorite);
+                newArticles = newArticles.filter(a => a.favorite);
             }
 
             // Filtre par tag
             if (state.currentTagId) {
-                state.articles = state.articles.filter(article => {
+                newArticles = newArticles.filter(article => {
                     const articleTags = getArticleTags(article.id);
                     return articleTags.includes(state.currentTagId);
                 });
             }
 
-            renderArticles();
+            if (append) {
+                state.articles = [...state.articles, ...newArticles];
+            } else {
+                state.articles = newArticles;
+                state.offset = 0;
+            }
+
+            // Mettre à jour l'offset et vérifier s'il y a plus d'articles
+            state.offset += newArticles.length;
+            state.hasMore = newArticles.length === limit;
+
+            renderArticles(append);
 
             // Afficher stats de recherche
             if (state.searchQuery) {
@@ -295,6 +378,7 @@ async function loadArticles() {
         console.error('Erreur lors du chargement des articles:', error);
         showNotification('Erreur lors du chargement des articles', 'error');
     } finally {
+        state.isLoading = false;
         hideLoading();
     }
 }
@@ -351,10 +435,12 @@ function createFeedCardHome(feed) {
 }
 
 // ===== Afficher les articles =====
-function renderArticles() {
+function renderArticles(append = false) {
     if (!elements.articlesList) return;
 
-    elements.articlesList.innerHTML = '';
+    if (!append) {
+        elements.articlesList.innerHTML = '';
+    }
 
     if (state.articles.length === 0) {
         elements.articlesList.style.display = 'none';
@@ -365,10 +451,38 @@ function renderArticles() {
     elements.articlesList.style.display = 'block';
     elements.noArticles.style.display = 'none';
 
-    state.articles.forEach(article => {
-        const articleElement = createArticleElement(article);
-        elements.articlesList.appendChild(articleElement);
-    });
+    if (append) {
+        // En mode append, ajouter seulement les nouveaux articles
+        const existingCount = elements.articlesList.children.length;
+        const newArticles = state.articles.slice(existingCount);
+
+        newArticles.forEach(article => {
+            const articleElement = createArticleElement(article);
+            elements.articlesList.appendChild(articleElement);
+        });
+    } else {
+        // En mode normal, afficher tous les articles
+        state.articles.forEach(article => {
+            const articleElement = createArticleElement(article);
+            elements.articlesList.appendChild(articleElement);
+        });
+    }
+}
+
+// ===== Calculer le temps de lecture =====
+function calculateReadingTime(text) {
+    if (!text) return null;
+
+    // Supprimer les balises HTML et compter les mots
+    const cleanText = text.replace(/<[^>]*>/g, '');
+    const wordCount = cleanText.split(/\s+/).filter(word => word.length > 0).length;
+
+    // Moyenne de 250 mots par minute
+    const minutes = Math.ceil(wordCount / 250);
+
+    if (minutes < 1) return '< 1 min';
+    if (minutes === 1) return '1 min';
+    return `${minutes} min`;
 }
 
 // ===== Créer un élément d'article =====
@@ -385,6 +499,9 @@ function createArticleElement(article) {
             minute: '2-digit'
           })
         : '';
+
+    // Calculer le temps de lecture
+    const readingTime = calculateReadingTime(article.content || article.description);
 
     // Récupérer les tags de l'article
     const articleTagIds = getArticleTags(article.id);
@@ -412,6 +529,7 @@ function createArticleElement(article) {
         <div class="article-item-header">
             <div class="article-item-title">${escapeHtml(article.title)}</div>
             <div class="article-item-actions">
+                <span class="article-share" onclick="shareArticle(event, ${article.id}, '${escapeHtml(article.title).replace(/'/g, "\\'")}', '${escapeHtml(article.link || '').replace(/'/g, "\\'")}')">🔗</span>
                 <span class="article-folder" onclick="classifyArticle(event, ${article.id}, '${escapeHtml(article.title)}')">📁</span>
                 <span class="article-favorite ${article.favorite ? 'active' : ''}" onclick="toggleFavorite(event, ${article.id})">⭐</span>
             </div>
@@ -420,6 +538,7 @@ function createArticleElement(article) {
             <span class="article-item-feed">${escapeHtml(article.feed_title)}</span>
             ${publishedDate ? `<span>${publishedDate}</span>` : ''}
             ${article.author ? `<span>Par ${escapeHtml(article.author)}</span>` : ''}
+            ${readingTime ? `<span class="reading-time">📖 ${readingTime}</span>` : ''}
         </div>
         ${article.description ? `<div class="article-item-description">${escapeHtml(article.description)}</div>` : ''}
         ${tagsHtml}
@@ -428,6 +547,7 @@ function createArticleElement(article) {
     div.addEventListener('click', (e) => {
         if (!e.target.classList.contains('article-favorite') &&
             !e.target.classList.contains('article-folder') &&
+            !e.target.classList.contains('article-share') &&
             !e.target.classList.contains('btn-add-tag') &&
             !e.target.classList.contains('article-tag-remove')) {
             showArticleDetail(article);
@@ -613,6 +733,8 @@ function showAllArticles() {
 function showFavorites() {
     state.currentFeedId = null;
     state.favorites = true;
+    state.offset = 0;
+    state.hasMore = true;
     elements.articlesTitle.textContent = '⭐ Articles favoris';
     loadArticles();
     renderFeeds();
@@ -621,6 +743,8 @@ function showFavorites() {
 // ===== Filtre non lus =====
 function handleUnreadFilter(e) {
     state.unreadOnly = e.target.checked;
+    state.offset = 0;
+    state.hasMore = true;
     loadArticles();
 }
 
@@ -652,6 +776,42 @@ window.toggleFavorite = async function(event, articleId) {
         }
     } catch (error) {
         console.error('Erreur:', error);
+    }
+};
+
+// ===== Partager un article =====
+window.shareArticle = async function(event, articleId, title, link) {
+    event.stopPropagation();
+
+    try {
+        // Créer le texte de partage
+        const shareText = `${title}\n${link || window.location.origin}`;
+
+        // Utiliser l'API Web Share si disponible
+        if (navigator.share) {
+            await navigator.share({
+                title: title,
+                text: title,
+                url: link || window.location.href
+            });
+            showNotification('Article partagé !', 'success');
+        } else {
+            // Sinon, copier le lien dans le presse-papiers
+            await navigator.clipboard.writeText(link || window.location.href);
+            showNotification('Lien copié dans le presse-papiers !', 'success');
+        }
+    } catch (error) {
+        // Si l'utilisateur annule le partage ou s'il y a une erreur
+        if (error.name !== 'AbortError') {
+            console.error('Erreur de partage:', error);
+            // Fallback: créer un lien temporaire et le copier
+            try {
+                await navigator.clipboard.writeText(link || window.location.href);
+                showNotification('Lien copié dans le presse-papiers !', 'success');
+            } catch (clipboardError) {
+                showNotification('Impossible de partager l\'article', 'error');
+            }
+        }
     }
 };
 
@@ -707,8 +867,56 @@ async function markArticleAsRead(articleId) {
         }
 
         updateSidebarStats();
+        updateUnreadCount();
     } catch (error) {
         console.error('Erreur:', error);
+    }
+}
+
+// ===== Marquer tous les articles affichés comme lus =====
+async function markAllArticlesAsRead() {
+    try {
+        if (state.articles.length === 0) {
+            showNotification('Aucun article à marquer', 'info');
+            return;
+        }
+
+        // Confirmer l'action
+        const count = state.articles.filter(a => !a.read).length;
+        if (count === 0) {
+            showNotification('Tous les articles sont déjà lus', 'info');
+            return;
+        }
+
+        if (!confirm(`Marquer ${count} article${count > 1 ? 's' : ''} comme lu${count > 1 ? 's' : ''} ?`)) {
+            return;
+        }
+
+        // Récupérer les IDs des articles affichés
+        const articleIds = state.articles.map(a => a.id);
+
+        const response = await fetch('/api/articles/mark-all-read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ article_ids: articleIds })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Mettre à jour l'état local
+            state.articles.forEach(article => {
+                article.read = 1;
+            });
+            renderArticles();
+            showNotification(data.message, 'success');
+            updateUnreadCount();
+        } else {
+            showNotification(data.error || 'Erreur lors de la mise à jour', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de la mise à jour', 'error');
     }
 }
 

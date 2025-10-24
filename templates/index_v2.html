@@ -29,6 +29,7 @@
             <div class="navbar-menu">
                 <a href="/" class="nav-link active">
                     <span class="icon">🏠</span> Accueil
+                    <span class="unread-badge" id="unread-badge" style="display: none;">0</span>
                 </a>
                 <a href="/dashboard" class="nav-link">
                     <span class="icon">📊</span> Dashboard
@@ -87,6 +88,9 @@
                         <input type="checkbox" id="filter-unread">
                         <span>Non lus seulement</span>
                     </label>
+                    <button class="btn-mark-all-read" id="btn-mark-all-read">
+                        ✓ Marquer tout comme lu
+                    </button>
                 </div>
             </div>
 

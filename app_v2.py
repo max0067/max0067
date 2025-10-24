@@ -19,7 +19,7 @@ from database_v2 import (
     init_db, authenticate_user, create_user, create_session, get_user_by_session,
     delete_session, get_all_users, update_user, delete_user,
     add_feed, get_user_feeds, update_feed, delete_feed, get_feed_by_id,
-    get_active_feeds, get_articles, mark_article_read, toggle_article_favorite,
+    get_active_feeds, get_articles, mark_article_read, mark_all_articles_read, toggle_article_favorite,
     get_article_count, get_user_stats, get_admin_stats
 )
 from rss_updater import update_single_feed, update_all_feeds
@@ -435,6 +435,27 @@ def api_mark_article_read(article_id):
 
     except Exception as e:
         logger.error(f"Error marking article: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/articles/mark-all-read', methods=['POST'])
+@login_required
+def api_mark_all_articles_read():
+    """Marque plusieurs articles comme lus"""
+    try:
+        data = request.get_json() or {}
+        article_ids = data.get('article_ids')  # Si None, marque tous les articles
+
+        count = mark_all_articles_read(request.current_user['id'], article_ids)
+
+        return jsonify({
+            'success': True,
+            'message': f'{count} article{"s" if count > 1 else ""} marqué{"s" if count > 1 else ""} comme lu{"s" if count > 1 else ""}',
+            'count': count
+        })
+
+    except Exception as e:
+        logger.error(f"Error marking articles as read: {str(e)}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
 

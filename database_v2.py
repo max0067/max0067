@@ -418,6 +418,38 @@ def mark_article_read(user_id, article_id, read=True):
         return cursor.rowcount > 0
 
 
+def mark_all_articles_read(user_id, article_ids=None):
+    """Marque plusieurs articles comme lus
+    Args:
+        user_id: ID de l'utilisateur
+        article_ids: Liste d'IDs d'articles à marquer (si None, marque tous les articles)
+    """
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        if article_ids:
+            # Marquer seulement les articles spécifiés
+            placeholders = ','.join('?' * len(article_ids))
+            cursor.execute(f'''
+                INSERT OR REPLACE INTO user_articles (user_id, article_id, read, read_at)
+                SELECT ?, id, 1, CURRENT_TIMESTAMP
+                FROM articles
+                WHERE id IN ({placeholders})
+            ''', [user_id] + article_ids)
+        else:
+            # Marquer tous les articles de l'utilisateur
+            cursor.execute('''
+                INSERT OR REPLACE INTO user_articles (user_id, article_id, read, read_at)
+                SELECT ?, id, 1, CURRENT_TIMESTAMP
+                FROM articles a
+                INNER JOIN feeds f ON a.feed_id = f.id
+                WHERE f.user_id = ?
+            ''', (user_id, user_id))
+
+        conn.commit()
+        return cursor.rowcount
+
+
 def toggle_article_favorite(user_id, article_id):
     """Bascule le statut favori d'un article"""
     with get_db() as conn:
