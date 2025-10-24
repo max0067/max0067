@@ -329,16 +329,22 @@ function updateThemesGrid(themes) {
 
 // Créer un nouveau thème
 window.createNewTheme = function() {
+    console.log('createNewTheme appelée');
     const name = prompt('Nom du thème :');
-    if (!name) return;
+    if (!name || name.trim() === '') {
+        console.log('Nom vide, annulation');
+        return;
+    }
 
     const colors = ['#3B82F6', '#F97316', '#EAB308', '#22C55E', '#A855F7', '#14B8A6'];
     const icons = ['📁', '⚖️', '📋', '🏛️', '📊', '🔍'];
 
     const themes = getLocalThemes();
+    console.log('Thèmes existants:', themes.length);
+
     const newTheme = {
         id: 'theme_' + Date.now(),
-        name: name,
+        name: name.trim(),
         color: colors[themes.length % colors.length],
         icon: icons[themes.length % icons.length],
         count: 0,
@@ -347,7 +353,11 @@ window.createNewTheme = function() {
 
     themes.push(newTheme);
     saveLocalThemes(themes);
+    console.log('Nouveau thème créé:', newTheme);
+    console.log('Total thèmes:', themes.length);
+
     updateThemesGrid(themes);
+    alert(`Thème "${name}" créé avec succès !`);
 }
 
 // Ouvrir un thème
@@ -434,7 +444,6 @@ function initEventListeners() {
 
         await Promise.all([
             loadStats(),
-            loadTopFeeds(),
             loadAlerts(),
             loadThemes()
         ]);
@@ -451,37 +460,6 @@ function initEventListeners() {
             window.manageThemes();
         });
     }
-
-    // Actualiser tout
-    document.getElementById('update-all-action').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const item = e.currentTarget;
-    const originalText = item.querySelector('span').textContent;
-
-    item.querySelector('span').textContent = 'Actualisation...';
-    item.style.pointerEvents = 'none';
-
-    try {
-        const response = await fetch('/api/feeds/update-all', { method: 'POST' });
-        const data = await response.json();
-
-        if (data.success) {
-            item.querySelector('span').textContent = 'Terminé !';
-            setTimeout(() => {
-                item.querySelector('span').textContent = originalText;
-                item.style.pointerEvents = 'auto';
-                loadStats();
-                loadTopFeeds();
-            }, 2000);
-        } else {
-            item.querySelector('span').textContent = originalText;
-            item.style.pointerEvents = 'auto';
-        }
-    } catch (error) {
-        item.querySelector('span').textContent = originalText;
-        item.style.pointerEvents = 'auto';
-    }
-    });
 }
 
 // Initialisation
@@ -494,7 +472,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Charger les données
     await Promise.all([
         loadStats(),
-        loadTopFeeds(),
         loadAlerts(),
         loadThemes()
     ]);
@@ -502,7 +479,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Actualiser toutes les 30 secondes
     setInterval(() => {
         loadStats();
-        loadTopFeeds();
         loadAlerts();
     }, 30000);
 });
