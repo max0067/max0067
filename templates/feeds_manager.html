@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des flux RSS - RSS Manager</title>
+    <link rel="stylesheet" href="/static/css/style_saas_modern.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <svg width="30" height="30" viewBox="0 0 50 50" style="margin-right: 10px;">
+                    <circle cx="25" cy="25" r="20" fill="url(#gradient)" />
+                    <circle cx="12" cy="38" r="3" fill="white" />
+                    <path d="M 12 32 Q 12 20, 24 20" stroke="white" stroke-width="3" fill="none" />
+                    <path d="M 12 26 Q 12 18, 20 18" stroke="white" stroke-width="3" fill="none" />
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8b5cf6" />
+                            <stop offset="100%" style="stop-color:#6366f1" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>RSS Manager</span>
+            </div>
+
+            <div class="navbar-menu">
+                <a href="/" class="nav-link">
+                    <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                    Accueil
+                </a>
+                <a href="/dashboard" class="nav-link">
+                    <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="/feeds" class="nav-link active">
+                    <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="1"></circle>
+                    </svg>
+                    Flux RSS
+                </a>
+            </div>
+
+            <div class="navbar-user">
+                <div class="user-menu">
+                    <button class="user-button" id="user-menu-button">
+                        <span class="user-avatar">👤</span>
+                        <span class="user-name" id="current-username">Utilisateur</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="user-dropdown" id="user-dropdown" style="display: none;">
+                        <div class="user-info">
+                            <div class="user-info-name" id="dropdown-username">Utilisateur</div>
+                            <div class="user-info-role" id="dropdown-role">user</div>
+                        </div>
+                        <a href="#" class="dropdown-item" id="logout-link">
+                            <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenu principal -->
+        <div class="main-content">
+            <!-- Carte de gestion des flux -->
+            <div class="card feeds-manager">
+                <div class="card-header">
+                    <h1 class="card-title">
+                        <svg class="icon-linear" viewBox="0 0 24 24">
+                            <path d="M4 11a9 9 0 0 1 9 9"></path>
+                            <path d="M4 4a16 16 0 0 1 16 16"></path>
+                            <circle cx="5" cy="19" r="1"></circle>
+                        </svg>
+                        Gestion des flux RSS
+                    </h1>
+                    <div class="card-actions">
+                        <button class="btn btn-outline" id="btn-update-all">
+                            <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            Actualiser tous
+                        </button>
+                        <button class="btn btn-primary" id="btn-add-feed">
+                            <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Ajouter un flux
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Liste des flux -->
+                <div class="feeds-grid" id="feeds-list">
+                    <!-- Les flux seront ajoutés ici par JavaScript -->
+                </div>
+
+                <!-- État vide -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <svg class="empty-icon" viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="1"></circle>
+                    </svg>
+                    <div class="empty-title">Aucun flux RSS</div>
+                    <div class="empty-description">Commencez par ajouter votre premier flux RSS pour suivre vos sources d'information.</div>
+                    <button class="btn btn-primary" onclick="document.getElementById('btn-add-feed').click()">
+                        <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Ajouter un flux
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter/modifier un flux -->
+    <div id="feed-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Ajouter un flux RSS</h2>
+                <button class="modal-close" id="modal-close">×</button>
+            </div>
+
+            <form id="feed-form">
+                <div class="modal-body">
+                    <input type="hidden" id="feed-id">
+
+                    <div class="form-group">
+                        <label class="form-label" for="feed-title">Titre du flux</label>
+                        <input type="text" class="form-input" id="feed-title" placeholder="Ex: Journal Officiel, Légifrance..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="feed-url">URL du flux RSS</label>
+                        <input type="url" class="form-input" id="feed-url" placeholder="https://example.com/feed.xml" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="feed-description">Description (optionnel)</label>
+                        <textarea class="form-textarea" id="feed-description" placeholder="Décrivez ce flux..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="feed-interval">Intervalle de mise à jour (minutes)</label>
+                        <input type="number" class="form-input" id="feed-interval" min="5" value="30">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="feed-active" checked>
+                            <span>Flux actif (mise à jour automatique)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="btn-cancel">Annuler</button>
+                    <button type="submit" class="btn btn-validate">
+                        <svg class="icon-linear icon-linear-sm" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/feeds_manager.js"></script>
+</body>
+</html>

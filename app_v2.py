@@ -210,6 +210,13 @@ def dashboard():
     return render_template('dashboard.html')
 
 
+@app.route('/feeds')
+@login_required
+def feeds_manager():
+    """Page de gestion des flux RSS"""
+    return render_template('feeds_manager.html')
+
+
 @app.route('/admin')
 @admin_required
 def admin_panel():
