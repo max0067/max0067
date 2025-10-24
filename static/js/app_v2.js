@@ -295,9 +295,9 @@ function createFeedElement(feed) {
         </div>
         ${feed.description ? `<div class="feed-item-description">${escapeHtml(feed.description)}</div>` : ''}
         <div class="feed-item-actions">
-            <button onclick="updateFeed(${feed.id})">🔄</button>
-            <button onclick="editFeed(${feed.id})">✏️</button>
-            <button onclick="deleteFeed(${feed.id})">🗑️</button>
+            <button class="feed-action-btn" onclick="updateFeed(${feed.id})" title="Actualiser">🔄</button>
+            <button class="feed-action-btn" onclick="editFeed(${feed.id})" title="Modifier">✏️</button>
+            <button class="feed-action-btn" onclick="deleteFeed(${feed.id})" title="Supprimer">🗑️</button>
         </div>
     `;
 

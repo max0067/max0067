@@ -489,12 +489,23 @@ body {
 .feed-item-actions {
     display: flex;
     gap: 0.5rem;
-    opacity: 0;
+    opacity: 0.3;  /* Toujours légèrement visibles */
     transition: opacity 0.2s;
 }
 
 .feed-item:hover .feed-item-actions {
     opacity: 1;
+}
+
+/* Toujours bien afficher les boutons sur mobile */
+@media (max-width: 768px) {
+    .feed-item-actions {
+        opacity: 0.8;  /* Plus visibles sur mobile */
+    }
+
+    .feed-item:hover .feed-item-actions {
+        opacity: 1;
+    }
 }
 
 .feed-action-btn {
@@ -510,6 +521,10 @@ body {
 .feed-action-btn:hover {
     opacity: 1;
     transform: scale(1.2);
+}
+
+.feed-action-btn:active {
+    transform: scale(0.95);
 }
 
 /* ==========================================
