@@ -301,7 +301,10 @@ function createArticleElement(article) {
     div.innerHTML = `
         <div class="article-item-header">
             <div class="article-item-title">${escapeHtml(article.title)}</div>
-            <span class="article-favorite ${article.favorite ? 'active' : ''}" onclick="toggleFavorite(event, ${article.id})">⭐</span>
+            <div class="article-item-actions">
+                <span class="article-folder" onclick="classifyArticle(event, ${article.id}, '${escapeHtml(article.title)}')">📁</span>
+                <span class="article-favorite ${article.favorite ? 'active' : ''}" onclick="toggleFavorite(event, ${article.id})">⭐</span>
+            </div>
         </div>
         <div class="article-item-meta">
             <span class="article-item-feed">${escapeHtml(article.feed_title)}</span>
@@ -312,7 +315,7 @@ function createArticleElement(article) {
     `;
 
     div.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('article-favorite')) {
+        if (!e.target.classList.contains('article-favorite') && !e.target.classList.contains('article-folder')) {
             showArticleDetail(article);
         }
     });
@@ -653,6 +656,146 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ===== Gestion des thèmes/dossiers =====
+
+// Récupérer les thèmes depuis localStorage
+function getLocalThemes() {
+    const saved = localStorage.getItem('user_themes');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
+// Sauvegarder les thèmes dans localStorage
+function saveLocalThemes(themes) {
+    localStorage.setItem('user_themes', JSON.stringify(themes));
+}
+
+// Récupérer les articles d'un thème
+function getThemeArticles(themeId) {
+    const saved = localStorage.getItem(`theme_articles_${themeId}`);
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
+// Sauvegarder les articles d'un thème
+function saveThemeArticles(themeId, articles) {
+    localStorage.setItem(`theme_articles_${themeId}`, JSON.stringify(articles));
+}
+
+// Classer un article dans un thème
+window.classifyArticle = function(event, articleId, articleTitle) {
+    event.stopPropagation();
+
+    const themes = getLocalThemes();
+
+    if (themes.length === 0) {
+        const create = confirm('Vous n\'avez pas encore de thèmes.\nVoulez-vous en créer un maintenant ?');
+        if (create) {
+            const name = prompt('Nom du thème :');
+            if (name) {
+                const colors = ['#3B82F6', '#F97316', '#EAB308', '#22C55E', '#A855F7', '#14B8A6'];
+                const icons = ['📁', '⚖️', '📋', '🏛️', '📊', '🔍'];
+
+                const newTheme = {
+                    id: 'theme_' + Date.now(),
+                    name: name,
+                    color: colors[0],
+                    icon: icons[0],
+                    count: 0,
+                    articles: []
+                };
+
+                themes.push(newTheme);
+                saveLocalThemes(themes);
+
+                // Ajouter l'article au nouveau thème
+                addArticleToTheme(newTheme.id, articleId, articleTitle);
+                showNotification(`Article ajouté au thème "${name}"`, 'success');
+            }
+        }
+        return;
+    }
+
+    // Créer le menu de sélection
+    let message = `Classer "${articleTitle.substring(0, 50)}..." dans :\n\n`;
+    themes.forEach((theme, index) => {
+        const articles = getThemeArticles(theme.id);
+        const isInTheme = articles.some(a => a.id === articleId);
+        const mark = isInTheme ? '✓ ' : '';
+        message += `${index + 1}. ${mark}${theme.icon} ${theme.name} (${articles.length} articles)\n`;
+    });
+    message += '\nEntrez le numéro du thème (ou 0 pour annuler) :';
+
+    const response = prompt(message);
+    if (!response || response === '0') return;
+
+    const themeIndex = parseInt(response) - 1;
+    if (themeIndex >= 0 && themeIndex < themes.length) {
+        const theme = themes[themeIndex];
+        const articles = getThemeArticles(theme.id);
+
+        // Vérifier si l'article est déjà dans le thème
+        const existingIndex = articles.findIndex(a => a.id === articleId);
+
+        if (existingIndex >= 0) {
+            // Retirer l'article du thème
+            if (confirm(`Retirer cet article du thème "${theme.name}" ?`)) {
+                articles.splice(existingIndex, 1);
+                saveThemeArticles(theme.id, articles);
+
+                // Mettre à jour le compteur
+                theme.count = articles.length;
+                saveLocalThemes(themes);
+
+                showNotification(`Article retiré du thème "${theme.name}"`, 'success');
+            }
+        } else {
+            // Ajouter l'article au thème
+            addArticleToTheme(theme.id, articleId, articleTitle);
+            showNotification(`Article ajouté au thème "${theme.name}"`, 'success');
+        }
+    } else {
+        showNotification('Numéro de thème invalide', 'error');
+    }
+}
+
+// Ajouter un article à un thème
+function addArticleToTheme(themeId, articleId, articleTitle) {
+    const themes = getLocalThemes();
+    const theme = themes.find(t => t.id === themeId);
+
+    if (!theme) return;
+
+    const articles = getThemeArticles(themeId);
+
+    // Vérifier que l'article n'est pas déjà dans le thème
+    if (!articles.some(a => a.id === articleId)) {
+        articles.push({
+            id: articleId,
+            title: articleTitle,
+            added_at: new Date().toISOString()
+        });
+
+        saveThemeArticles(themeId, articles);
+
+        // Mettre à jour le compteur
+        theme.count = articles.length;
+        saveLocalThemes(themes);
+    }
 }
 
 // ===== Animations CSS =====

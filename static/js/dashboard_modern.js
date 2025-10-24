@@ -278,6 +278,19 @@ function saveLocalThemes(themes) {
     localStorage.setItem('user_themes', JSON.stringify(themes));
 }
 
+// Récupérer les articles d'un thème
+function getThemeArticles(themeId) {
+    const saved = localStorage.getItem(`theme_articles_${themeId}`);
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
 // Mettre à jour la grille des thèmes
 function updateThemesGrid(themes) {
     const container = document.getElementById('themes-grid');
@@ -297,14 +310,18 @@ function updateThemesGrid(themes) {
     }
 
     container.innerHTML = themes.map(theme => {
+        // Récupérer le vrai nombre d'articles depuis localStorage
+        const articles = getThemeArticles(theme.id);
+        const count = articles.length;
+
         return `
             <div class="theme-card" style="color: ${theme.color}" onclick="openTheme('${theme.id}')">
                 <div class="theme-header">
                     <div class="theme-icon">${theme.icon}</div>
                     <div class="theme-name">${escapeHtml(theme.name)}</div>
                 </div>
-                <div class="theme-count">${theme.count || 0}</div>
-                <div class="theme-label">articles</div>
+                <div class="theme-count">${count}</div>
+                <div class="theme-label">article${count > 1 ? 's' : ''}</div>
             </div>
         `;
     }).join('');
