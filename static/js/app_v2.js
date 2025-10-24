@@ -295,14 +295,33 @@ function createFeedElement(feed) {
         </div>
         ${feed.description ? `<div class="feed-item-description">${escapeHtml(feed.description)}</div>` : ''}
         <div class="feed-item-actions">
-            <button class="feed-action-btn" onclick="updateFeed(${feed.id})" title="Actualiser">🔄</button>
-            <button class="feed-action-btn" onclick="editFeed(${feed.id})" title="Modifier">✏️</button>
-            <button class="feed-action-btn" onclick="deleteFeed(${feed.id})" title="Supprimer">🗑️</button>
+            <button class="feed-action-btn" data-action="update" data-feed-id="${feed.id}" title="Actualiser">🔄</button>
+            <button class="feed-action-btn" data-action="edit" data-feed-id="${feed.id}" title="Modifier">✏️</button>
+            <button class="feed-action-btn" data-action="delete" data-feed-id="${feed.id}" title="Supprimer">🗑️</button>
         </div>
     `;
 
     div.addEventListener('click', (e) => {
-        if (!e.target.matches('button')) {
+        // Trouver si on a cliqué sur un bouton ou un enfant d'un bouton
+        const button = e.target.closest('button');
+
+        if (button && button.classList.contains('feed-action-btn')) {
+            e.stopPropagation();
+            e.preventDefault();
+            const action = button.dataset.action;
+            const feedId = parseInt(button.dataset.feedId);
+
+            console.log('Action déclenchée:', action, 'pour feedId:', feedId);
+
+            if (action === 'update') {
+                updateFeed(feedId);
+            } else if (action === 'edit') {
+                editFeed(feedId);
+            } else if (action === 'delete') {
+                deleteFeed(feedId);
+            }
+        } else {
+            // Clic sur le flux lui-même
             showFeedArticles(feed.id, feed.title);
         }
     });
@@ -459,9 +478,14 @@ async function handleFeedSubmit(e) {
 
 // ===== Modifier un flux =====
 window.editFeed = function(feedId) {
+    console.log('editFeed appelée avec feedId:', feedId);
     const feed = state.feeds.find(f => f.id === feedId);
+    console.log('Feed trouvé:', feed);
     if (feed) {
         openFeedModal(feed);
+    } else {
+        console.error('Flux non trouvé avec id:', feedId);
+        showNotification('Flux non trouvé', 'error');
     }
 };
 
