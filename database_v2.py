@@ -369,8 +369,8 @@ def add_article(feed_id, title, link, description='', author='', published_date=
             return None
 
 
-def get_articles(user_id, feed_id=None, limit=100, offset=0, unread_only=False, search_query=None):
-    """Récupère les articles d'un utilisateur"""
+def get_articles(user_id, feed_id=None, limit=10000, offset=0, unread_only=False, search_query=None):
+    """Récupère les articles d'un utilisateur (tous les articles conservés à vie)"""
     with get_db() as conn:
         cursor = conn.cursor()
 
