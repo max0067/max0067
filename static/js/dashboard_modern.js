@@ -341,8 +341,33 @@ function openTheme(themeId) {
 
 // Gérer les thèmes
 function manageThemes() {
-    alert('Fonctionnalité de gestion des thèmes à venir !');
-    // TODO: Ouvrir une modal pour gérer les thèmes
+    const themes = getLocalThemes();
+
+    if (themes.length === 0) {
+        alert('Vous n\'avez pas encore de thèmes.\nCliquez sur "Créer un thème" pour commencer !');
+        return;
+    }
+
+    let message = 'Vos thèmes :\n\n';
+    themes.forEach((theme, index) => {
+        message += `${index + 1}. ${theme.icon} ${theme.name} (${theme.count} articles)\n`;
+    });
+    message += '\nPour supprimer un thème, entrez son numéro (ou 0 pour annuler) :';
+
+    const response = prompt(message);
+    if (!response || response === '0') return;
+
+    const themeIndex = parseInt(response) - 1;
+    if (themeIndex >= 0 && themeIndex < themes.length) {
+        if (confirm(`Voulez-vous vraiment supprimer le thème "${themes[themeIndex].name}" ?`)) {
+            themes.splice(themeIndex, 1);
+            saveLocalThemes(themes);
+            updateThemesGrid(themes);
+            alert('Thème supprimé avec succès !');
+        }
+    } else {
+        alert('Numéro de thème invalide.');
+    }
 }
 
 // Calculer le temps écoulé
@@ -358,55 +383,60 @@ function getTimeAgo(date) {
     return `Il y a ${days}j`;
 }
 
-// Menu utilisateur
-document.getElementById('user-menu-button').addEventListener('click', () => {
-    const dropdown = document.getElementById('user-dropdown');
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-});
+// Initialiser les event listeners après le chargement du DOM
+function initEventListeners() {
+    // Menu utilisateur
+    document.getElementById('user-menu-button').addEventListener('click', () => {
+        const dropdown = document.getElementById('user-dropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    });
 
-document.addEventListener('click', (e) => {
-    const dropdown = document.getElementById('user-dropdown');
-    const button = document.getElementById('user-menu-button');
-    if (!button.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.style.display = 'none';
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('user-dropdown');
+        const button = document.getElementById('user-menu-button');
+        if (!button.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // Déconnexion
+    document.getElementById('logout-link').addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+        } catch (error) {
+            window.location.href = '/login';
+        }
+    });
+
+    // Bouton actualiser
+    document.getElementById('refresh-button').addEventListener('click', async () => {
+        const button = document.getElementById('refresh-button');
+        button.disabled = true;
+
+        await Promise.all([
+            loadStats(),
+            loadTopFeeds(),
+            loadAlerts(),
+            loadThemes()
+        ]);
+
+        setTimeout(() => {
+            button.disabled = false;
+        }, 1000);
+    });
+
+    // Bouton gérer les thèmes
+    const manageBtn = document.getElementById('manage-themes-btn');
+    if (manageBtn) {
+        manageBtn.addEventListener('click', () => {
+            manageThemes();
+        });
     }
-});
 
-// Déconnexion
-document.getElementById('logout-link').addEventListener('click', async (e) => {
-    e.preventDefault();
-    try {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.href = '/login';
-    } catch (error) {
-        window.location.href = '/login';
-    }
-});
-
-// Bouton actualiser
-document.getElementById('refresh-button').addEventListener('click', async () => {
-    const button = document.getElementById('refresh-button');
-    button.disabled = true;
-
-    await Promise.all([
-        loadStats(),
-        loadTopFeeds(),
-        loadAlerts(),
-        loadThemes()
-    ]);
-
-    setTimeout(() => {
-        button.disabled = false;
-    }, 1000);
-});
-
-// Bouton gérer les thèmes
-document.getElementById('manage-themes-btn').addEventListener('click', () => {
-    manageThemes();
-});
-
-// Actualiser tout
-document.getElementById('update-all-action').addEventListener('click', async (e) => {
+    // Actualiser tout
+    document.getElementById('update-all-action').addEventListener('click', async (e) => {
     e.preventDefault();
     const item = e.currentTarget;
     const originalText = item.querySelector('span').textContent;
@@ -434,10 +464,13 @@ document.getElementById('update-all-action').addEventListener('click', async (e)
         item.querySelector('span').textContent = originalText;
         item.style.pointerEvents = 'auto';
     }
-});
+    });
+}
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialiser tous les event listeners
+    initEventListeners();
     // Charger l'utilisateur
     await loadCurrentUser();
 
