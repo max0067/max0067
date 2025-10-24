@@ -279,20 +279,20 @@ function createFeedCardHome(feed) {
     const card = document.createElement('div');
     card.className = 'feed-card-home';
 
-    const statusBadge = feed.active
-        ? '<span class="feed-card-home-badge active">Actif</span>'
-        : '<span class="feed-card-home-badge inactive">Inactif</span>';
-
     card.innerHTML = `
-        <div class="feed-card-home-icon">📡</div>
         <div class="feed-card-home-title">${escapeHtml(feed.title || 'Sans titre')}</div>
         ${feed.description ? `<div class="feed-card-home-description">${escapeHtml(feed.description)}</div>` : ''}
         <div class="feed-card-home-footer">
-            <div class="feed-card-home-count">
-                <span class="feed-card-home-count-value">${feed.article_count || 0}</span>
-                <span>articles</span>
+            <div class="feed-card-home-stats">
+                <div class="feed-card-home-stat">
+                    <span class="feed-card-home-count-value">${feed.article_count || 0}</span>
+                    <span class="feed-card-home-count-label">articles</span>
+                </div>
+                <div class="feed-card-home-stat">
+                    <span class="feed-card-home-count-value">${feed.unread_count || 0}</span>
+                    <span class="feed-card-home-count-label">non lus</span>
+                </div>
             </div>
-            ${statusBadge}
         </div>
     `;
 
