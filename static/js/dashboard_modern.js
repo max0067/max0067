@@ -248,77 +248,83 @@ function updateAlertsCount(count) {
     }
 }
 
-// Charger les thèmes
+// Charger les tags (remplace les thèmes)
 async function loadThemes() {
     try {
-        // Pour l'instant, on utilise des données locales
-        // Plus tard, on ajoutera une API pour gérer les thèmes
-        const themes = getLocalThemes();
-        updateThemesGrid(themes);
+        const tags = getUserTags();
+        updateThemesGrid(tags);
     } catch (error) {
-        console.error('Error loading themes:', error);
+        console.error('Error loading tags:', error);
     }
 }
 
-// Récupérer les thèmes depuis localStorage
-function getLocalThemes() {
-    const saved = localStorage.getItem('user_themes');
+// Récupérer les tags depuis localStorage (même fonction que dans app_v2.js)
+function getUserTags() {
+    const saved = localStorage.getItem('user_tags');
     if (saved) {
         try {
             return JSON.parse(saved);
         } catch (e) {
-            return [];
+            return getDefaultTags();
         }
     }
-    return [];
+    return getDefaultTags();
 }
 
-// Sauvegarder les thèmes dans localStorage
-function saveLocalThemes(themes) {
-    localStorage.setItem('user_themes', JSON.stringify(themes));
+// Tags par défaut
+function getDefaultTags() {
+    return [
+        { id: 'urgent', name: 'Urgent', color: '#EF4444' },
+        { id: 'important', name: 'Important', color: '#F97316' },
+        { id: 'a-lire', name: 'À lire', color: '#3B82F6' },
+        { id: 'archive', name: 'Archive', color: '#6B7280' }
+    ];
 }
 
-// Récupérer les articles d'un thème
-function getThemeArticles(themeId) {
-    const saved = localStorage.getItem(`theme_articles_${themeId}`);
-    if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch (e) {
-            return [];
+// Compter les articles pour un tag
+function getTagArticleCount(tagId) {
+    let count = 0;
+    // Parcourir tous les articles taggés dans localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('article_tags_')) {
+            try {
+                const tags = JSON.parse(localStorage.getItem(key));
+                if (tags.includes(tagId)) {
+                    count++;
+                }
+            } catch (e) {}
         }
     }
-    return [];
+    return count;
 }
 
-// Mettre à jour la grille des thèmes
-function updateThemesGrid(themes) {
+// Mettre à jour la grille des tags
+function updateThemesGrid(tags) {
     const container = document.getElementById('themes-grid');
     if (!container) return;
 
-    if (themes.length === 0) {
+    if (tags.length === 0) {
         container.innerHTML = `
             <div class="empty-message">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                 </svg>
-                <p>Aucun favori classé par thème</p>
-                <button class="btn-add-theme" onclick="createNewTheme()">Créer un thème</button>
+                <p>Aucun tag créé</p>
+                <p style="font-size: 0.875rem; color: var(--text-tertiary); margin-top: 0.5rem;">Ajoutez des tags aux articles sur la page d'accueil</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = themes.map(theme => {
-        // Récupérer le vrai nombre d'articles depuis localStorage
-        const articles = getThemeArticles(theme.id);
-        const count = articles.length;
+    container.innerHTML = tags.map(tag => {
+        const count = getTagArticleCount(tag.id);
 
         return `
-            <div class="theme-card" style="color: ${theme.color}" onclick="openTheme('${theme.id}')">
+            <div class="theme-card" style="color: ${tag.color}" onclick="openTag('${tag.id}')">
                 <div class="theme-header">
-                    <div class="theme-icon">${theme.icon}</div>
-                    <div class="theme-name">${escapeHtml(theme.name)}</div>
+                    <div class="theme-icon">🏷️</div>
+                    <div class="theme-name">${escapeHtml(tag.name)}</div>
                 </div>
                 <div class="theme-count">${count}</div>
                 <div class="theme-label">article${count > 1 ? 's' : ''}</div>
@@ -327,179 +333,21 @@ function updateThemesGrid(themes) {
     }).join('');
 }
 
-// Créer un nouveau thème
+// Ouvrir un tag - redirige vers l'accueil avec le filtre
+window.openTag = function(tagId) {
+    // Rediriger vers la page d'accueil avec le filtre du tag
+    window.location.href = `/?tag=${tagId}`;
+}
+
+// Les tags sont gérés sur la page d'accueil
+// Pas de création de tags ici, ils sont créés via le bouton "+ Tag" sur les articles
 window.createNewTheme = function() {
-    console.log('createNewTheme appelée');
-    const name = prompt('Nom du thème :');
-    if (!name || name.trim() === '') {
-        console.log('Nom vide, annulation');
-        return;
-    }
-
-    const colors = ['#3B82F6', '#F97316', '#EAB308', '#22C55E', '#A855F7', '#14B8A6'];
-    const icons = ['📁', '⚖️', '📋', '🏛️', '📊', '🔍'];
-
-    const themes = getLocalThemes();
-    console.log('Thèmes existants:', themes.length);
-
-    const newTheme = {
-        id: 'theme_' + Date.now(),
-        name: name.trim(),
-        color: colors[themes.length % colors.length],
-        icon: icons[themes.length % icons.length],
-        count: 0,
-        articles: []
-    };
-
-    themes.push(newTheme);
-    saveLocalThemes(themes);
-    console.log('Nouveau thème créé:', newTheme);
-    console.log('Total thèmes:', themes.length);
-
-    updateThemesGrid(themes);
-    alert(`Thème "${name}" créé avec succès !`);
+    alert('Pour créer ou gérer vos tags, rendez-vous sur la page d\'accueil\net cliquez sur le bouton "+ Tag" sous un article.');
 }
 
-// Ouvrir un thème
-window.openTheme = function(themeId) {
-    // Rediriger vers la page d'accueil avec le filtre du thème
-    window.location.href = `/?theme=${themeId}`;
-}
-
-// Gérer les thèmes
+// Gérer les tags - redirige vers la page d'accueil
 window.manageThemes = function() {
-    const themes = getLocalThemes();
-
-    if (themes.length === 0) {
-        alert('Vous n\'avez pas encore de thèmes.\nCliquez sur "Créer un thème" pour commencer !');
-        return;
-    }
-
-    let message = 'Gestion des thèmes :\n\n';
-    themes.forEach((theme, index) => {
-        const articles = getThemeArticles(theme.id);
-        message += `${index + 1}. ${theme.icon} ${theme.name} (${articles.length} articles)\n`;
-    });
-    message += '\nActions :\n';
-    message += '• Modifier : entrez le numéro du thème (ex: 1)\n';
-    message += '• Supprimer : entrez le numéro avec "s" (ex: s1)\n';
-    message += '• Annuler : entrez 0\n\n';
-    message += 'Votre choix :';
-
-    const response = prompt(message);
-    if (!response || response === '0') return;
-
-    // Vérifier si c'est une suppression (commence par "s")
-    if (response.toLowerCase().startsWith('s')) {
-        const themeIndex = parseInt(response.substring(1)) - 1;
-        if (themeIndex >= 0 && themeIndex < themes.length) {
-            const theme = themes[themeIndex];
-            if (confirm(`Voulez-vous vraiment supprimer le thème "${theme.name}" ?\n\nTous les articles de ce thème seront retirés du thème.`)) {
-                // Supprimer les articles du thème
-                localStorage.removeItem(`theme_articles_${theme.id}`);
-                // Supprimer le thème
-                themes.splice(themeIndex, 1);
-                saveLocalThemes(themes);
-                updateThemesGrid(themes);
-                alert('Thème supprimé avec succès !');
-            }
-        } else {
-            alert('Numéro de thème invalide.');
-        }
-    } else {
-        // C'est une modification
-        const themeIndex = parseInt(response) - 1;
-        if (themeIndex >= 0 && themeIndex < themes.length) {
-            editTheme(themeIndex);
-        } else {
-            alert('Numéro de thème invalide.');
-        }
-    }
-}
-
-// Modifier un thème
-function editTheme(themeIndex) {
-    const themes = getLocalThemes();
-    const theme = themes[themeIndex];
-
-    let message = `Modification du thème "${theme.name}" ${theme.icon}\n\n`;
-    message += 'Que voulez-vous modifier ?\n\n';
-    message += '1. Renommer le thème\n';
-    message += '2. Changer l\'icône\n';
-    message += '3. Changer la couleur\n';
-    message += '0. Annuler\n\n';
-    message += 'Votre choix :';
-
-    const choice = prompt(message);
-    if (!choice || choice === '0') return;
-
-    switch (choice) {
-        case '1':
-            // Renommer
-            const newName = prompt(`Nouveau nom du thème :`, theme.name);
-            if (newName && newName.trim() !== '') {
-                theme.name = newName.trim();
-                saveLocalThemes(themes);
-                updateThemesGrid(themes);
-                alert('Thème renommé avec succès !');
-            }
-            break;
-
-        case '2':
-            // Changer l'icône
-            const icons = ['📁', '⚖️', '📋', '🏛️', '📊', '🔍', '📌', '🔖', '📝', '💼', '🎯', '⭐'];
-            let iconMessage = 'Choisissez une icône :\n\n';
-            icons.forEach((icon, index) => {
-                iconMessage += `${index + 1}. ${icon}\n`;
-            });
-            iconMessage += '\nNuméro de l\'icône :';
-
-            const iconChoice = prompt(iconMessage);
-            if (iconChoice) {
-                const iconIndex = parseInt(iconChoice) - 1;
-                if (iconIndex >= 0 && iconIndex < icons.length) {
-                    theme.icon = icons[iconIndex];
-                    saveLocalThemes(themes);
-                    updateThemesGrid(themes);
-                    alert('Icône changée avec succès !');
-                }
-            }
-            break;
-
-        case '3':
-            // Changer la couleur
-            const colors = [
-                { name: 'Bleu', value: '#3B82F6' },
-                { name: 'Orange', value: '#F97316' },
-                { name: 'Jaune', value: '#EAB308' },
-                { name: 'Vert', value: '#22C55E' },
-                { name: 'Violet', value: '#A855F7' },
-                { name: 'Teal', value: '#14B8A6' },
-                { name: 'Rose', value: '#EC4899' },
-                { name: 'Rouge', value: '#EF4444' }
-            ];
-
-            let colorMessage = 'Choisissez une couleur :\n\n';
-            colors.forEach((color, index) => {
-                colorMessage += `${index + 1}. ${color.name}\n`;
-            });
-            colorMessage += '\nNuméro de la couleur :';
-
-            const colorChoice = prompt(colorMessage);
-            if (colorChoice) {
-                const colorIndex = parseInt(colorChoice) - 1;
-                if (colorIndex >= 0 && colorIndex < colors.length) {
-                    theme.color = colors[colorIndex].value;
-                    saveLocalThemes(themes);
-                    updateThemesGrid(themes);
-                    alert('Couleur changée avec succès !');
-                }
-            }
-            break;
-
-        default:
-            alert('Choix invalide.');
-    }
+    alert('Pour gérer vos tags, rendez-vous sur la page d\'accueil.\n\nVous pouvez :\n• Créer un tag en cliquant sur "+ Tag" sous un article\n• Supprimer un tag d\'un article en cliquant sur le ✕\n• Les tags apparaissent automatiquement ici');
 }
 
 // Calculer le temps écoulé

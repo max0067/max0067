@@ -6,7 +6,8 @@ const state = {
     currentFeedId: null,
     unreadOnly: false,
     searchQuery: '',
-    favorites: false
+    favorites: false,
+    currentTagId: null
 };
 
 // ===== Éléments du DOM =====
@@ -74,6 +75,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentUser();
     initializeEventListeners();
     loadFeeds();
+
+    // Gérer les paramètres URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tagId = urlParams.get('tag');
+
+    if (tagId) {
+        // Filtre par tag
+        state.currentTagId = tagId;
+        const tags = getUserTags();
+        const tag = tags.find(t => t.id === tagId);
+        if (tag && elements.articlesTitle) {
+            elements.articlesTitle.textContent = `🏷️ ${tag.name}`;
+        }
+    }
+
     loadArticles();
 
     // Gérer les favoris depuis l'URL
@@ -256,6 +272,14 @@ async function loadArticles() {
 
             if (state.favorites) {
                 state.articles = state.articles.filter(a => a.favorite);
+            }
+
+            // Filtre par tag
+            if (state.currentTagId) {
+                state.articles = state.articles.filter(article => {
+                    const articleTags = getArticleTags(article.id);
+                    return articleTags.includes(state.currentTagId);
+                });
             }
 
             renderArticles();
