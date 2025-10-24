@@ -73,12 +73,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentUser();
     initializeEventListeners();
     loadFeeds();
-    loadArticles();
 
-    // Gérer les favoris depuis l'URL
-    if (window.location.hash === '#favorites') {
-        showFavorites();
-    }
+    // Sur la page d'accueil, on affiche seulement les flux
+    // Les articles ne sont plus affichés
 });
 
 // ===== Authentification =====
@@ -178,25 +175,23 @@ function handleSearch(e) {
     const query = e.target.value.trim();
     state.searchQuery = query;
 
-    if (query) {
-        elements.searchClear.style.display = 'block';
-    } else {
-        elements.searchClear.style.display = 'none';
+    if (elements.searchClear) {
+        if (query) {
+            elements.searchClear.style.display = 'block';
+        } else {
+            elements.searchClear.style.display = 'none';
+        }
     }
 
-    // Debounce
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        loadArticles();
-    }, 300);
+    // Sur la page d'accueil, on ne recherche pas d'articles
+    // La recherche ne fonctionne que sur les pages avec liste d'articles
 }
 
 function clearSearch() {
-    elements.searchInput.value = '';
+    if (elements.searchInput) elements.searchInput.value = '';
     state.searchQuery = '';
-    elements.searchClear.style.display = 'none';
-    elements.searchStats.textContent = '';
-    loadArticles();
+    if (elements.searchClear) elements.searchClear.style.display = 'none';
+    if (elements.searchStats) elements.searchStats.textContent = '';
 }
 
 // ===== API: Charger les flux =====
