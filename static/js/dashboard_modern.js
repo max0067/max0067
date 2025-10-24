@@ -311,7 +311,7 @@ function updateThemesGrid(themes) {
 }
 
 // Créer un nouveau thème
-function createNewTheme() {
+window.createNewTheme = function() {
     const name = prompt('Nom du thème :');
     if (!name) return;
 
@@ -334,13 +334,13 @@ function createNewTheme() {
 }
 
 // Ouvrir un thème
-function openTheme(themeId) {
+window.openTheme = function(themeId) {
     // Rediriger vers la page des favoris avec le filtre du thème
     window.location.href = `/#favorites?theme=${themeId}`;
 }
 
 // Gérer les thèmes
-function manageThemes() {
+window.manageThemes = function() {
     const themes = getLocalThemes();
 
     if (themes.length === 0) {
@@ -431,7 +431,7 @@ function initEventListeners() {
     const manageBtn = document.getElementById('manage-themes-btn');
     if (manageBtn) {
         manageBtn.addEventListener('click', () => {
-            manageThemes();
+            window.manageThemes();
         });
     }
 

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Debug - Thèmes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #output {
+            background: #f5f5f5;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .btn-primary {
+            background: #3B82F6;
+            color: white;
+            border: none;
+        }
+        .btn-success {
+            background: #22C55E;
+            color: white;
+            border: none;
+        }
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Debug - Section Thèmes</h1>
+
+    <div>
+        <button class="btn-primary" onclick="testCreateTheme()">Créer un thème test</button>
+        <button class="btn-success" onclick="testLoadThemes()">Charger les thèmes</button>
+        <button class="btn-danger" onclick="testClearThemes()">Effacer tous les thèmes</button>
+        <button onclick="testManageThemes()">Gérer les thèmes</button>
+    </div>
+
+    <div id="output">Cliquez sur un bouton pour tester...</div>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            output.textContent += message + '\n';
+        }
+
+        function clearLog() {
+            document.getElementById('output').textContent = '';
+        }
+
+        // Récupérer les thèmes depuis localStorage
+        function getLocalThemes() {
+            const saved = localStorage.getItem('user_themes');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        // Sauvegarder les thèmes dans localStorage
+        function saveLocalThemes(themes) {
+            localStorage.setItem('user_themes', JSON.stringify(themes));
+        }
+
+        function testCreateTheme() {
+            clearLog();
+            log('=== TEST CRÉATION THÈME ===\n');
+
+            const colors = ['#3B82F6', '#F97316', '#EAB308', '#22C55E', '#A855F7', '#14B8A6'];
+            const icons = ['📁', '⚖️', '📋', '🏛️', '📊', '🔍'];
+
+            const themes = getLocalThemes();
+            log(`Thèmes existants : ${themes.length}`);
+
+            const newTheme = {
+                id: 'theme_' + Date.now(),
+                name: 'Test Thème ' + (themes.length + 1),
+                color: colors[themes.length % colors.length],
+                icon: icons[themes.length % icons.length],
+                count: 0,
+                articles: []
+            };
+
+            themes.push(newTheme);
+            saveLocalThemes(themes);
+
+            log(`\nNouveau thème créé :`);
+            log(`- ID: ${newTheme.id}`);
+            log(`- Nom: ${newTheme.name}`);
+            log(`- Couleur: ${newTheme.color}`);
+            log(`- Icône: ${newTheme.icon}`);
+            log(`\nTotal de thèmes : ${themes.length}`);
+            log('\n✅ Thème créé avec succès !');
+        }
+
+        function testLoadThemes() {
+            clearLog();
+            log('=== TEST CHARGEMENT THÈMES ===\n');
+
+            const themes = getLocalThemes();
+            log(`Nombre de thèmes trouvés : ${themes.length}\n`);
+
+            if (themes.length === 0) {
+                log('Aucun thème trouvé dans localStorage');
+            } else {
+                themes.forEach((theme, index) => {
+                    log(`Thème ${index + 1}:`);
+                    log(`  - ID: ${theme.id}`);
+                    log(`  - Nom: ${theme.name}`);
+                    log(`  - Couleur: ${theme.color}`);
+                    log(`  - Icône: ${theme.icon}`);
+                    log(`  - Articles: ${theme.count || 0}`);
+                    log('');
+                });
+            }
+        }
+
+        function testClearThemes() {
+            if (confirm('Voulez-vous vraiment effacer tous les thèmes ?')) {
+                localStorage.removeItem('user_themes');
+                clearLog();
+                log('=== EFFACEMENT THÈMES ===\n');
+                log('✅ Tous les thèmes ont été effacés de localStorage');
+            }
+        }
+
+        function testManageThemes() {
+            clearLog();
+            log('=== TEST GESTION THÈMES ===\n');
+
+            const themes = getLocalThemes();
+
+            if (themes.length === 0) {
+                log('Aucun thème à gérer.');
+                alert('Vous n\'avez pas encore de thèmes.\nCliquez sur "Créer un thème" pour commencer !');
+                return;
+            }
+
+            let message = 'Vos thèmes :\n\n';
+            themes.forEach((theme, index) => {
+                message += `${index + 1}. ${theme.icon} ${theme.name} (${theme.count || 0} articles)\n`;
+            });
+            message += '\nPour supprimer un thème, entrez son numéro (ou 0 pour annuler) :';
+
+            const response = prompt(message);
+            if (!response || response === '0') {
+                log('Opération annulée');
+                return;
+            }
+
+            const themeIndex = parseInt(response) - 1;
+            if (themeIndex >= 0 && themeIndex < themes.length) {
+                if (confirm(`Voulez-vous vraiment supprimer le thème "${themes[themeIndex].name}" ?`)) {
+                    const deletedTheme = themes.splice(themeIndex, 1)[0];
+                    saveLocalThemes(themes);
+                    log(`✅ Thème "${deletedTheme.name}" supprimé avec succès !`);
+                    log(`\nThèmes restants : ${themes.length}`);
+                }
+            } else {
+                log('❌ Numéro de thème invalide.');
+                alert('Numéro de thème invalide.');
+            }
+        }
+
+        // Test automatique au chargement
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Page de test chargée\n');
+            log('LocalStorage disponible : ' + (typeof(Storage) !== "undefined" ? 'Oui' : 'Non'));
+            log('\nCliquez sur un bouton pour commencer les tests...\n');
+        });
+    </script>
+</body>
+</html>
