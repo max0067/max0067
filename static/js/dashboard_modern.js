@@ -379,6 +379,30 @@ function initEventListeners() {
         }
     });
 
+    // Menu hamburger
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const navbarMenu = document.getElementById('navbar-menu');
+            menuToggle.classList.toggle('active');
+            navbarMenu.classList.toggle('active');
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        const menuToggle = document.getElementById('menu-toggle');
+        const navbarMenu = document.getElementById('navbar-menu');
+
+        if (menuToggle && navbarMenu &&
+            !menuToggle.contains(e.target) &&
+            !navbarMenu.contains(e.target) &&
+            navbarMenu.classList.contains('active')) {
+            menuToggle.classList.remove('active');
+            navbarMenu.classList.remove('active');
+        }
+    });
+
     // Déconnexion
     document.getElementById('logout-link').addEventListener('click', async (e) => {
         e.preventDefault();

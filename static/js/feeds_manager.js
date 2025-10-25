@@ -25,6 +25,16 @@ function initializeEventListeners() {
     });
     document.addEventListener('click', closeUserMenuOutside);
 
+    // Menu hamburger
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+    }
+    document.addEventListener('click', closeMobileMenuOutside);
+
     // Fermer le modal en cliquant en dehors
     document.getElementById('feed-modal').addEventListener('click', (e) => {
         if (e.target.id === 'feed-modal') {
@@ -61,6 +71,30 @@ function closeUserMenuOutside(e) {
 
     if (userMenu && !userMenu.contains(e.target)) {
         dropdown.style.display = 'none';
+    }
+}
+
+// ===== MENU MOBILE =====
+function toggleMobileMenu() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const navbarMenu = document.getElementById('navbar-menu');
+
+    if (menuToggle && navbarMenu) {
+        menuToggle.classList.toggle('active');
+        navbarMenu.classList.toggle('active');
+    }
+}
+
+function closeMobileMenuOutside(e) {
+    const menuToggle = document.getElementById('menu-toggle');
+    const navbarMenu = document.getElementById('navbar-menu');
+
+    if (menuToggle && navbarMenu &&
+        !menuToggle.contains(e.target) &&
+        !navbarMenu.contains(e.target) &&
+        navbarMenu.classList.contains('active')) {
+        menuToggle.classList.remove('active');
+        navbarMenu.classList.remove('active');
     }
 }
 

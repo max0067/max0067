@@ -173,6 +173,40 @@ body {
     font-size: 18px;
 }
 
+/* ===== MENU HAMBURGER (Mobile) ===== */
+.menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 8px;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1001;
+}
+
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: white;
+    border-radius: 3px;
+    transition: all 0.3s;
+}
+
+.menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(8px, 6px);
+}
+
+.menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
 /* ===== SEARCH BAR ===== */
 .search-bar {
     background: white;
@@ -1008,14 +1042,51 @@ form {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 968px) {
+    .menu-toggle {
+        display: flex;
+    }
+
     .navbar-menu {
+        position: fixed;
+        top: 65px;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        flex-direction: column;
+        gap: 0;
+        padding: 20px 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-100%);
+        transition: transform 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 999;
+    }
+
+    .navbar-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .nav-link {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+    }
+
+    .navbar-user {
+        margin-left: auto;
+    }
+
+    .user-name {
         display: none;
     }
-    
+
     .sidebar {
         width: 280px;
     }
-    
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
