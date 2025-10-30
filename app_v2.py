@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 from database_v2 import (
     init_db, authenticate_user, create_user, create_session, get_user_by_session,
     delete_session, get_all_users, update_user, delete_user,
-    add_feed, get_user_feeds, update_feed, delete_feed, get_feed_by_id,
+    add_feed, get_user_feeds, get_all_feeds, update_feed, delete_feed, get_feed_by_id,
     get_active_feeds, get_articles, mark_article_read, mark_all_articles_read, toggle_article_favorite,
     get_article_count, get_user_stats, get_admin_stats
 )
@@ -229,9 +229,9 @@ def admin_panel():
 @app.route('/api/feeds', methods=['GET'])
 @login_required
 def api_get_feeds():
-    """Récupère tous les flux de l'utilisateur"""
+    """Récupère TOUS les flux RSS (partagés entre tous les utilisateurs)"""
     try:
-        feeds = get_user_feeds(request.current_user['id'])
+        feeds = get_all_feeds()  # Tous les flux pour tous les utilisateurs
         return jsonify({'success': True, 'feeds': feeds})
     except Exception as e:
         logger.error(f"Error getting feeds: {str(e)}")
@@ -241,9 +241,9 @@ def api_get_feeds():
 @app.route('/api/feeds/<int:feed_id>', methods=['GET'])
 @login_required
 def api_get_feed(feed_id):
-    """Récupère un flux spécifique"""
+    """Récupère un flux spécifique (accessible à tous les utilisateurs)"""
     try:
-        feed = get_feed_by_id(feed_id, request.current_user['id'])
+        feed = get_feed_by_id(feed_id, user_id=None)  # Pas de filtre user_id
         if feed:
             return jsonify({'success': True, 'feed': feed})
         return jsonify({'success': False, 'error': 'Feed not found'}), 404
@@ -255,7 +255,7 @@ def api_get_feed(feed_id):
 @app.route('/api/feeds', methods=['POST'])
 @login_required
 def api_add_feed():
-    """Ajoute un nouveau flux RSS"""
+    """Ajoute un nouveau flux RSS (partagé avec tous les utilisateurs)"""
     try:
         data = request.get_json()
 
@@ -267,6 +267,7 @@ def api_add_feed():
         description = data.get('description', '')
         update_interval = data.get('update_interval', 30)
 
+        # Le flux est créé par cet utilisateur mais visible par tous
         feed_id = add_feed(
             user_id=request.current_user['id'],
             title=title,
@@ -294,8 +295,12 @@ def api_add_feed():
 @app.route('/api/feeds/<int:feed_id>', methods=['PUT'])
 @login_required
 def api_update_feed(feed_id):
-    """Met à jour un flux RSS"""
+    """Met à jour un flux RSS (réservé aux admins car flux partagés)"""
     try:
+        # Seuls les admins peuvent modifier les flux partagés
+        if request.current_user.get('role') != 'admin':
+            return jsonify({'success': False, 'error': 'Admin access required'}), 403
+
         data = request.get_json()
 
         if not data:
@@ -303,7 +308,7 @@ def api_update_feed(feed_id):
 
         success = update_feed(
             feed_id,
-            user_id=request.current_user['id'],
+            user_id=None,  # Pas de filtre user_id pour les admins
             **{k: v for k, v in data.items() if k in ['title', 'url', 'description', 'update_interval', 'active']}
         )
 
@@ -320,9 +325,13 @@ def api_update_feed(feed_id):
 @app.route('/api/feeds/<int:feed_id>', methods=['DELETE'])
 @login_required
 def api_delete_feed(feed_id):
-    """Supprime un flux RSS"""
+    """Supprime un flux RSS (réservé aux admins car flux partagés)"""
     try:
-        success = delete_feed(feed_id, request.current_user['id'])
+        # Seuls les admins peuvent supprimer les flux partagés
+        if request.current_user.get('role') != 'admin':
+            return jsonify({'success': False, 'error': 'Admin access required'}), 403
+
+        success = delete_feed(feed_id, user_id=None)  # Pas de filtre user_id
 
         if success:
             return jsonify({'success': True, 'message': 'Feed deleted successfully'})
@@ -337,10 +346,10 @@ def api_delete_feed(feed_id):
 @app.route('/api/feeds/<int:feed_id>/update', methods=['POST'])
 @login_required
 def api_update_single_feed(feed_id):
-    """Force la mise à jour d'un flux spécifique"""
+    """Force la mise à jour d'un flux spécifique (accessible à tous car flux partagés)"""
     try:
-        # Vérifier que le flux appartient à l'utilisateur
-        feed = get_feed_by_id(feed_id, request.current_user['id'])
+        # Vérifier que le flux existe (sans filtre user_id car partagé)
+        feed = get_feed_by_id(feed_id, user_id=None)
         if not feed:
             return jsonify({'success': False, 'error': 'Feed not found'}), 404
 

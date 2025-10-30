@@ -276,6 +276,20 @@ def get_user_feeds(user_id):
         return [dict(row) for row in cursor.fetchall()]
 
 
+def get_all_feeds():
+    """Récupère TOUS les flux RSS (partagés entre tous les utilisateurs)"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT f.*, COUNT(a.id) as article_count
+            FROM feeds f
+            LEFT JOIN articles a ON f.id = a.feed_id
+            GROUP BY f.id
+            ORDER BY f.created_at DESC
+        ''')
+        return [dict(row) for row in cursor.fetchall()]
+
+
 def update_feed(feed_id, user_id=None, **kwargs):
     """Met à jour un flux RSS"""
     with get_db() as conn:
