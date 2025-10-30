@@ -263,6 +263,61 @@
             background: #f8f9fa;
         }
 
+        /* FEEDS */
+        .feed-item {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .feed-item:hover {
+            background: #f8f9fa;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .feed-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .feed-url {
+            font-size: 0.875rem;
+            color: #667eea;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+
+        .feed-url:hover {
+            text-decoration: underline;
+        }
+
+        .feed-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .feed-count {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
         /* ARTICLES */
         .article-item {
             padding: 1.25rem 1.5rem;
@@ -433,6 +488,21 @@
 
         <div class="card">
             <div class="card-header">
+                <h2>📡 Vos flux RSS</h2>
+                <button class="btn btn-secondary" onclick="window.location.href='/feeds'">
+                    + Gérer les flux
+                </button>
+            </div>
+            <div class="card-body" id="feeds-container">
+                <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <p>Chargement des flux...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
                 <h2>📰 Derniers articles</h2>
                 <button class="btn btn-secondary" onclick="loadArticles()">
                     🔄 Actualiser
@@ -494,6 +564,37 @@
             }
         }
 
+        // Charger les flux RSS
+        async function loadFeeds() {
+            try {
+                const container = document.getElementById('feeds-container');
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><p>Chargement...</p></div>';
+
+                const response = await fetch('/api/feeds');
+                const data = await response.json();
+
+                if (data.success && data.feeds && data.feeds.length > 0) {
+                    container.innerHTML = data.feeds.map(feed => `
+                        <div class="feed-item" onclick="window.location.href='/feeds'">
+                            <div class="feed-header">
+                                <div class="feed-title">${feed.title || 'Flux RSS'}</div>
+                            </div>
+                            <a href="${feed.url}" class="feed-url" onclick="event.stopPropagation()" target="_blank">${feed.url}</a>
+                            <div class="feed-meta">
+                                <span class="feed-count">📄 ${feed.article_count || 0} articles</span>
+                                <span>📅 Ajouté le ${new Date(feed.created_at).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Aucun flux RSS configuré</p></div>';
+                }
+            } catch (error) {
+                console.error('Erreur flux:', error);
+                document.getElementById('feeds-container').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Erreur lors du chargement des flux</p></div>';
+            }
+        }
+
         // Charger les articles
         async function loadArticles() {
             try {
@@ -532,6 +633,7 @@
         // Chargement initial
         loadUser();
         loadStats();
+        loadFeeds();
         loadArticles();
     </script>
 </body>
