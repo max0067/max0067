@@ -2,9 +2,13 @@
 
 # Active Passenger
 PassengerEnabled on
+# PassengerAppRoot doit pointer vers le répertoire de l'application
+# Ajustez selon votre configuration o2switch
 PassengerAppRoot /home/VOTRE_USER/public_html/rss-manager
 # OU pour un sous-domaine:
 # PassengerAppRoot /home/VOTRE_USER/rss.votre-domaine.com
+# OU directement le répertoire actuel
+# PassengerAppRoot /home/VOTRE_USER/dusselle.fr
 
 # Point d'entrée de l'application
 PassengerAppType wsgi

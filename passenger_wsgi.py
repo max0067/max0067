@@ -24,7 +24,8 @@ else:
 sys.path.insert(0, os.path.dirname(__file__))
 
 # Importer l'application Flask
-from app import app as application
+# IMPORTANT: Utiliser app_v2 qui contient toutes les routes (auth, dashboard, etc.)
+from app_v2 import app as application
 
 # Pour le debugging (à désactiver en production)
 # import logging
