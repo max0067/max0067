@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - RSS Manager</title>
+    <link rel="stylesheet" href="/static/css/style_v2.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation identique à l'accueil -->
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <svg width="30" height="30" viewBox="0 0 50 50" style="margin-right: 10px;">
+                    <circle cx="25" cy="25" r="20" fill="url(#gradient)" />
+                    <circle cx="12" cy="38" r="3" fill="white" />
+                    <path d="M 12 32 Q 12 20, 24 20" stroke="white" stroke-width="3" fill="none" />
+                    <path d="M 12 26 Q 12 18, 20 18" stroke="white" stroke-width="3" fill="none" />
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea" />
+                            <stop offset="100%" style="stop-color:#764ba2" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>RSS Manager</span>
+            </div>
+
+            <div class="navbar-menu">
+                <a href="/" class="nav-link">
+                    <span class="icon">🏠</span> Accueil
+                </a>
+                <a href="/dashboard" class="nav-link active">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="/feeds" class="nav-link">
+                    <span class="icon">📡</span> Flux RSS
+                </a>
+            </div>
+
+            <div class="navbar-user">
+                <div class="user-menu">
+                    <button class="user-button" id="user-menu-button">
+                        <span class="user-avatar">👤</span>
+                        <span class="user-name" id="current-username">Utilisateur</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="user-dropdown" id="user-dropdown" style="display: none;">
+                        <div class="user-info">
+                            <div class="user-info-name" id="dropdown-username">Utilisateur</div>
+                            <div class="user-info-role" id="dropdown-role">user</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="/admin" class="dropdown-item admin-only" id="admin-link" style="display: none;">
+                            <span class="icon">👑</span> Administration
+                        </a>
+                        <a href="#" class="dropdown-item" id="logout-link">
+                            <span class="icon">🚪</span> Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1>📊 Dashboard</h1>
+                <p>Vue d'ensemble de vos flux RSS partagés</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="sidebar-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0;">
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-feeds">0</span>
+                    <span class="stat-label">flux RSS</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-articles">0</span>
+                    <span class="stat-label">articles</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-unread">0</span>
+                    <span class="stat-label">non lus</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-favorites">0</span>
+                    <span class="stat-label">favoris</span>
+                </div>
+            </div>
+
+            <!-- Derniers articles -->
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>📰 Derniers articles</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="loadArticles()">🔄 Actualiser</button>
+                </div>
+                <div id="articles-list" class="articles-container" style="padding: 1rem;">
+                    <p style="text-align: center; color: #666;">Chargement...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app_v2.js"></script>
+    <script>
+        // Charger l'utilisateur
+        async function loadUser() {
+            try {
+                const res = await fetch('/api/auth/me');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('current-username').textContent = data.user.username;
+                    document.getElementById('dropdown-username').textContent = data.user.username;
+                    document.getElementById('dropdown-role').textContent = data.user.role;
+                    if (data.user.role === 'admin') {
+                        document.getElementById('admin-link').style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur utilisateur:', error);
+            }
+        }
+
+        // Charger les stats
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('stat-feeds').textContent = data.stats.total_feeds || 0;
+                    document.getElementById('stat-articles').textContent = data.stats.total_articles || 0;
+                    document.getElementById('stat-unread').textContent = data.stats.unread_articles || 0;
+                    document.getElementById('stat-favorites').textContent = data.stats.favorites || 0;
+                }
+            } catch (error) {
+                console.error('Erreur stats:', error);
+            }
+        }
+
+        // Charger les articles
+        async function loadArticles() {
+            try {
+                const articlesList = document.getElementById('articles-list');
+                articlesList.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Chargement...</p>';
+
+                const res = await fetch('/api/articles?limit=15');
+                const data = await res.json();
+
+                if (data.success && data.articles && data.articles.length > 0) {
+                    articlesList.innerHTML = data.articles.map(article => `
+                        <div class="article-card" onclick="window.open('${article.link}', '_blank')" style="cursor: pointer; padding: 1rem; border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+                            <h3 style="font-size: 1rem; margin-bottom: 0.5rem; color: #0f172a;">${article.title}</h3>
+                            <div style="display: flex; gap: 1rem; font-size: 0.875rem; color: #64748b;">
+                                <span>📡 ${article.feed_title || 'RSS Feed'}</span>
+                                <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    articlesList.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Aucun article disponible</p>';
+                }
+            } catch (error) {
+                console.error('Erreur articles:', error);
+                document.getElementById('articles-list').innerHTML = '<p style="text-align: center; color: #ef4444; padding: 2rem;">Erreur lors du chargement</p>';
+            }
+        }
+
+        // Menu utilisateur
+        document.getElementById('user-menu-button').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-menu')) {
+                document.getElementById('user-dropdown').style.display = 'none';
+            }
+        });
+
+        // Déconnexion
+        document.getElementById('logout-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+
+        // Chargement initial
+        loadUser();
+        loadStats();
+        loadArticles();
+    </script>
+</body>
+</html>
