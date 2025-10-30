@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - RSS Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        /* NAVBAR - Identique à l'accueil */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #64748B;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #f1f5f9;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .navbar-user {
+            position: relative;
+        }
+
+        .user-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-button:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .user-dropdown.active {
+            display: block;
+        }
+
+        .user-info {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .user-info-name {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .user-info-role {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #334155;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        /* DASHBOARD MINIMALISTE */
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-subtitle {
+            color: #64748b;
+        }
+
+        /* STATS CARDS - Minimaliste */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* SECTIONS */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        /* FEED LIST - Minimaliste */
+        .feed-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .feed-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .feed-item:hover {
+            background: #f8f9fa;
+        }
+
+        .feed-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .feed-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .feed-details h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .feed-details p {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .feed-count {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* ARTICLE LIST - Minimaliste */
+        .article-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .article-item {
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            background: #f8f9fa;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .article-item:hover {
+            background: #f1f5f9;
+            border-left-color: #5568d3;
+        }
+
+        .article-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8125rem;
+            color: #64748b;
+        }
+
+        .article-badge {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .navbar-menu {
+                display: none;
+            }
+
+            .dashboard {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR IDENTIQUE À L'ACCUEIL -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <svg width="30" height="30" viewBox="0 0 50 50" style="margin-right: 10px;">
+                <circle cx="25" cy="25" r="20" fill="url(#gradient)" />
+                <circle cx="12" cy="38" r="3" fill="white" />
+                <path d="M 12 32 Q 12 20, 24 20" stroke="white" stroke-width="3" fill="none" />
+                <path d="M 12 26 Q 12 18, 20 18" stroke="white" stroke-width="3" fill="none" />
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea" />
+                        <stop offset="100%" style="stop-color:#764ba2" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span>RSS Manager</span>
+        </a>
+
+        <div class="navbar-menu">
+            <a href="/" class="nav-link">
+                <span>🏠</span> Accueil
+            </a>
+            <a href="/dashboard" class="nav-link active">
+                <span>📊</span> Dashboard
+            </a>
+            <a href="/feeds" class="nav-link">
+                <span>📡</span> Flux
+            </a>
+        </div>
+
+        <div class="navbar-user">
+            <button class="user-button" id="user-menu-button">
+                <span>👤</span>
+                <span id="current-username">Utilisateur</span>
+                <span>▼</span>
+            </button>
+            <div class="user-dropdown" id="user-dropdown">
+                <div class="user-info">
+                    <div class="user-info-name" id="dropdown-username">Utilisateur</div>
+                    <div class="user-info-role" id="dropdown-role">user</div>
+                </div>
+                <a href="/admin" class="dropdown-item" id="admin-link" style="display: none;">
+                    <span>👑</span> Administration
+                </a>
+                <a href="#" class="dropdown-item" id="logout-link">
+                    <span>🚪</span> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- DASHBOARD MINIMALISTE -->
+    <div class="dashboard">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Dashboard</h1>
+            <p class="dashboard-subtitle">Vue d'ensemble de vos flux RSS</p>
+        </div>
+
+        <!-- STATS MINIMALISTES -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">📡 Flux RSS</div>
+                <div class="stat-value" id="total-feeds">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📄 Articles</div>
+                <div class="stat-value" id="total-articles">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">⏱️ Non lus</div>
+                <div class="stat-value" id="unread-articles">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">⭐ Favoris</div>
+                <div class="stat-value" id="total-favorites">0</div>
+            </div>
+        </div>
+
+        <!-- VOS FLUX RSS -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Vos flux RSS</h2>
+                <button class="btn btn-primary" onclick="window.location.href='/feeds'">
+                    + Gérer les flux
+                </button>
+            </div>
+            <div class="feed-list" id="feeds-list">
+                <p style="text-align: center; color: #64748b; padding: 2rem;">Chargement...</p>
+            </div>
+        </div>
+
+        <!-- DERNIERS ARTICLES -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Derniers articles</h2>
+                <button class="btn btn-secondary" id="btn-refresh">🔄 Actualiser</button>
+            </div>
+            <div class="article-list" id="articles-list">
+                <p style="text-align: center; color: #64748b; padding: 2rem;">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Menu utilisateur
+        document.getElementById('user-menu-button').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('user-dropdown').classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.navbar-user')) {
+                document.getElementById('user-dropdown').classList.remove('active');
+            }
+        });
+
+        // Charger les données utilisateur
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('current-username').textContent = data.user.username;
+                    document.getElementById('dropdown-username').textContent = data.user.username;
+                    document.getElementById('dropdown-role').textContent = data.user.role;
+                    if (data.user.role === 'admin') {
+                        document.getElementById('admin-link').style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Charger les stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('total-feeds').textContent = data.stats.total_feeds || 0;
+                    document.getElementById('total-articles').textContent = data.stats.total_articles || 0;
+                    document.getElementById('unread-articles').textContent = data.stats.unread_articles || 0;
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Charger les flux
+        async function loadFeeds() {
+            try {
+                const response = await fetch('/api/feeds');
+                const data = await response.json();
+                if (data.success && data.feeds.length > 0) {
+                    const feedsList = document.getElementById('feeds-list');
+                    feedsList.innerHTML = data.feeds.slice(0, 5).map(feed => `
+                        <div class="feed-item">
+                            <div class="feed-info">
+                                <div class="feed-icon">📡</div>
+                                <div class="feed-details">
+                                    <h4>${feed.title}</h4>
+                                    <p>${feed.description || 'Aucune description'}</p>
+                                </div>
+                            </div>
+                            <div class="feed-count">${feed.article_count || 0} articles</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Charger les articles
+        async function loadArticles() {
+            try {
+                const response = await fetch('/api/articles?limit=10');
+                const data = await response.json();
+                if (data.success && data.articles.length > 0) {
+                    const articlesList = document.getElementById('articles-list');
+                    articlesList.innerHTML = data.articles.map(article => `
+                        <div class="article-item" onclick="window.open('${article.link}', '_blank')">
+                            <div class="article-title">${article.title}</div>
+                            <div class="article-meta">
+                                <span class="article-badge">${article.feed_title || 'RSS'}</span>
+                                <span>${timeAgo(article.published_date)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' min';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + 'h';
+            return Math.floor(seconds / 86400) + ' jours';
+        }
+
+        // Actualiser
+        document.getElementById('btn-refresh').addEventListener('click', function() {
+            loadStats();
+            loadFeeds();
+            loadArticles();
+        });
+
+        // Déconnexion
+        document.getElementById('logout-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+
+        // Charger au démarrage
+        loadUserData();
+        loadStats();
+        loadFeeds();
+        loadArticles();
+    </script>
+</body>
+</html>
