@@ -230,12 +230,42 @@
             justify-content: space-between;
             align-items: center;
             background: #fafafa;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .card-header h2 {
             font-size: 1.125rem;
             font-weight: 600;
             color: #0f172a;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .card-header-actions {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .card-body {
@@ -261,61 +291,6 @@
         .btn-secondary:hover {
             border-color: #667eea;
             background: #f8f9fa;
-        }
-
-        /* FEEDS */
-        .feed-item {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            transition: background 0.2s;
-            cursor: pointer;
-        }
-
-        .feed-item:last-child {
-            border-bottom: none;
-        }
-
-        .feed-item:hover {
-            background: #f8f9fa;
-        }
-
-        .feed-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .feed-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #0f172a;
-        }
-
-        .feed-url {
-            font-size: 0.875rem;
-            color: #667eea;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 0.5rem;
-            word-break: break-all;
-        }
-
-        .feed-url:hover {
-            text-decoration: underline;
-        }
-
-        .feed-meta {
-            display: flex;
-            gap: 1.5rem;
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-
-        .feed-count {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
         }
 
         /* ARTICLES */
@@ -517,6 +492,41 @@
             .stat-value {
                 font-size: 1.75rem;
             }
+
+            .card-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .card-header h2 {
+                width: 100%;
+            }
+
+            .search-bar {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .card-header-actions {
+                width: 100%;
+            }
+
+            .card-header-actions button {
+                flex: 1;
+            }
+
+            .article-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .article-actions {
+                width: 100%;
+            }
+
+            .article-actions button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -616,25 +626,24 @@
 
         <div class="card">
             <div class="card-header">
-                <h2>📡 Vos flux RSS</h2>
-                <button class="btn btn-secondary" onclick="window.location.href='/feeds'">
-                    + Gérer les flux
-                </button>
-            </div>
-            <div class="card-body" id="feeds-container">
-                <div class="empty-state">
-                    <div class="empty-state-icon">⏳</div>
-                    <p>Chargement des flux...</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
                 <h2>📰 Derniers articles</h2>
-                <button class="btn btn-secondary" onclick="loadArticles()">
-                    🔄 Actualiser
-                </button>
+                <div class="search-bar">
+                    <input
+                        type="text"
+                        class="search-input"
+                        id="search-input"
+                        placeholder="🔍 Rechercher dans les articles..."
+                        onkeyup="filterArticles()"
+                    >
+                </div>
+                <div class="card-header-actions">
+                    <button class="btn btn-secondary" onclick="clearSearch()">
+                        ✕ Effacer
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadArticles()">
+                        🔄 Actualiser
+                    </button>
+                </div>
             </div>
             <div class="card-body" id="articles-container">
                 <div class="empty-state">
@@ -707,68 +716,25 @@
             }
         }
 
-        // Charger les flux RSS
-        async function loadFeeds() {
-            try {
-                const container = document.getElementById('feeds-container');
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><p>Chargement...</p></div>';
-
-                const response = await fetch('/api/feeds');
-                const data = await response.json();
-
-                if (data.success && data.feeds && data.feeds.length > 0) {
-                    container.innerHTML = data.feeds.map(feed => `
-                        <div class="feed-item" onclick="window.location.href='/feeds'">
-                            <div class="feed-header">
-                                <div class="feed-title">${feed.title || 'Flux RSS'}</div>
-                            </div>
-                            <a href="${feed.url}" class="feed-url" onclick="event.stopPropagation()" target="_blank">${feed.url}</a>
-                            <div class="feed-meta">
-                                <span class="feed-count">📄 ${feed.article_count || 0} articles</span>
-                                <span>📅 Ajouté le ${new Date(feed.created_at).toLocaleDateString('fr-FR')}</span>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Aucun flux RSS configuré</p></div>';
-                }
-            } catch (error) {
-                console.error('Erreur flux:', error);
-                document.getElementById('feeds-container').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Erreur lors du chargement des flux</p></div>';
-            }
-        }
-
         // Charger les articles
         async function loadArticles() {
             try {
                 const container = document.getElementById('articles-container');
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><p>Chargement...</p></div>';
 
-                const response = await fetch('/api/articles?limit=20');
+                const response = await fetch('/api/articles?limit=50');
                 const data = await response.json();
 
                 if (data.success && data.articles && data.articles.length > 0) {
-                    container.innerHTML = data.articles.map(article => `
-                        <div class="article-item">
-                            <div class="article-content" onclick="window.open('${article.link}', '_blank')">
-                                <div class="article-title">${article.title}</div>
-                                <div class="article-meta">
-                                    <span>📡 ${article.feed_title || 'RSS Feed'}</span>
-                                    <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                                </div>
-                            </div>
-                            <div class="article-actions">
-                                <button class="btn-folder" onclick="openFolderModal(${article.id}, '${article.title.replace(/'/g, "\\'")}')">
-                                    📁 Ajouter au dossier
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
+                    allArticles = data.articles;
+                    displayArticles(allArticles);
                 } else {
+                    allArticles = [];
                     container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Aucun article disponible</p></div>';
                 }
             } catch (error) {
                 console.error('Erreur articles:', error);
+                allArticles = [];
                 document.getElementById('articles-container').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Erreur lors du chargement des articles</p></div>';
             }
         }
@@ -865,10 +831,79 @@
             window.location.href = '/login';
         });
 
+        // Variables pour stocker tous les articles
+        let allArticles = [];
+
+        // Fonction de recherche/filtre
+        function filterArticles() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            const container = document.getElementById('articles-container');
+
+            if (!searchTerm) {
+                // Si pas de recherche, afficher tous les articles
+                displayArticles(allArticles);
+                return;
+            }
+
+            // Filtrer les articles
+            const filtered = allArticles.filter(article => {
+                const title = article.title.toLowerCase();
+                const feedTitle = (article.feed_title || '').toLowerCase();
+                const description = (article.description || '').toLowerCase();
+
+                return title.includes(searchTerm) ||
+                       feedTitle.includes(searchTerm) ||
+                       description.includes(searchTerm);
+            });
+
+            if (filtered.length > 0) {
+                displayArticles(filtered);
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>Aucun article trouvé pour "${searchTerm}"</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Effacer la recherche
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            displayArticles(allArticles);
+        }
+
+        // Afficher les articles (nouvelle fonction séparée)
+        function displayArticles(articles) {
+            const container = document.getElementById('articles-container');
+
+            if (!articles || articles.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Aucun article disponible</p></div>';
+                return;
+            }
+
+            container.innerHTML = articles.map(article => `
+                <div class="article-item">
+                    <div class="article-content" onclick="window.open('${article.link}', '_blank')">
+                        <div class="article-title">${article.title}</div>
+                        <div class="article-meta">
+                            <span>📡 ${article.feed_title || 'RSS Feed'}</span>
+                            <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                    </div>
+                    <div class="article-actions">
+                        <button class="btn-folder" onclick="openFolderModal(${article.id}, '${article.title.replace(/'/g, "\\'")}')">
+                            📁 Ajouter au dossier
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         // Chargement initial
         loadUser();
         loadStats();
-        loadFeeds();
         loadArticles();
     </script>
 </body>
