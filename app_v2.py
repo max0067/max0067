@@ -200,10 +200,14 @@ def api_current_user():
 # ===== Routes principales =====
 
 @app.route('/')
-@login_required
-def index():
-    """Page principale"""
-    return render_template('index_v2.html')
+def home():
+    """Page d'accueil publique"""
+    # Si l'utilisateur est connecté, rediriger vers le dashboard
+    if session.get('token'):
+        user = get_user_by_session(session.get('token'))
+        if user:
+            return redirect(url_for('dashboard'))
+    return render_template('home.html')
 
 
 @app.route('/dashboard')
