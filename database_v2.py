@@ -103,12 +103,42 @@ def init_db():
             )
         ''')
 
+        # Table des dossiers
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS folders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                color TEXT DEFAULT '#667eea',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                UNIQUE(user_id, name)
+            )
+        ''')
+
+        # Table de relation articles-dossiers (many-to-many)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS article_folders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                article_id INTEGER NOT NULL,
+                folder_id INTEGER NOT NULL,
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (article_id) REFERENCES articles (id) ON DELETE CASCADE,
+                FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE,
+                UNIQUE(article_id, folder_id)
+            )
+        ''')
+
         # Index pour améliorer les performances
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_articles_feed_id ON articles(feed_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_articles_published_date ON articles(published_date DESC)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_feeds_user_id ON feeds(user_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_articles_user_id ON user_articles(user_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_folders_user_id ON folders(user_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_article_folders_article_id ON article_folders(article_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_article_folders_folder_id ON article_folders(folder_id)')
 
         # Créer un utilisateur admin par défaut
         cursor.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")
@@ -596,6 +626,170 @@ def get_admin_stats():
             'total_articles': total_articles,
             'avg_articles_per_user': round(avg_articles, 1)
         }
+
+
+# ===== Fonctions Dossiers =====
+
+def create_folder(user_id, name, description='', color='#667eea'):
+    """Crée un nouveau dossier pour un utilisateur"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO folders (user_id, name, description, color)
+                VALUES (?, ?, ?, ?)
+            ''', (user_id, name, description, color))
+            conn.commit()
+            return cursor.lastrowid
+        except sqlite3.IntegrityError:
+            return None
+
+
+def get_user_folders(user_id):
+    """Récupère tous les dossiers d'un utilisateur avec le nombre d'articles"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT f.*, COUNT(af.article_id) as article_count
+            FROM folders f
+            LEFT JOIN article_folders af ON f.id = af.folder_id
+            WHERE f.user_id = ?
+            GROUP BY f.id
+            ORDER BY f.created_at DESC
+        ''', (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_folder_by_id(folder_id, user_id):
+    """Récupère un dossier par son ID"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM folders
+            WHERE id = ? AND user_id = ?
+        ''', (folder_id, user_id))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def update_folder(folder_id, user_id, **kwargs):
+    """Met à jour un dossier"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        updates = []
+        params = []
+
+        for key, value in kwargs.items():
+            if key in ['name', 'description', 'color']:
+                updates.append(f"{key} = ?")
+                params.append(value)
+
+        if updates:
+            params.extend([folder_id, user_id])
+            query = f"UPDATE folders SET {', '.join(updates)} WHERE id = ? AND user_id = ?"
+            cursor.execute(query, params)
+            conn.commit()
+            return cursor.rowcount > 0
+        return False
+
+
+def delete_folder(folder_id, user_id):
+    """Supprime un dossier (cascade sur article_folders)"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            DELETE FROM folders
+            WHERE id = ? AND user_id = ?
+        ''', (folder_id, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def add_article_to_folder(article_id, folder_id):
+    """Ajoute un article à un dossier"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO article_folders (article_id, folder_id)
+                VALUES (?, ?)
+            ''', (article_id, folder_id))
+            conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            # L'article est déjà dans ce dossier
+            return False
+
+
+def remove_article_from_folder(article_id, folder_id):
+    """Retire un article d'un dossier"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            DELETE FROM article_folders
+            WHERE article_id = ? AND folder_id = ?
+        ''', (article_id, folder_id))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def get_folder_articles(folder_id, user_id, limit=10000, offset=0):
+    """Récupère tous les articles d'un dossier"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT a.*, f.title as feed_title,
+                   COALESCE(ua.read, 0) as read,
+                   COALESCE(ua.favorite, 0) as favorite,
+                   af.added_at as folder_added_at
+            FROM articles a
+            JOIN article_folders af ON a.id = af.article_id
+            JOIN feeds f ON a.feed_id = f.id
+            LEFT JOIN user_articles ua ON a.id = ua.article_id AND ua.user_id = ?
+            WHERE af.folder_id = ?
+            ORDER BY af.added_at DESC
+            LIMIT ? OFFSET ?
+        ''', (user_id, folder_id, limit, offset))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_article_folders(article_id, user_id):
+    """Récupère tous les dossiers contenant un article"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT f.*
+            FROM folders f
+            JOIN article_folders af ON f.id = af.folder_id
+            WHERE af.article_id = ? AND f.user_id = ?
+            ORDER BY f.name
+        ''', (article_id, user_id))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def move_article_to_folder(article_id, from_folder_id, to_folder_id):
+    """Déplace un article d'un dossier à un autre"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        # Retirer de l'ancien dossier si spécifié
+        if from_folder_id:
+            cursor.execute('''
+                DELETE FROM article_folders
+                WHERE article_id = ? AND folder_id = ?
+            ''', (article_id, from_folder_id))
+
+        # Ajouter au nouveau dossier
+        try:
+            cursor.execute('''
+                INSERT INTO article_folders (article_id, folder_id)
+                VALUES (?, ?)
+            ''', (article_id, to_folder_id))
+            conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return False
 
 
 if __name__ == "__main__":

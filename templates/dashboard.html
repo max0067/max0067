@@ -323,7 +323,10 @@
             padding: 1.25rem 1.5rem;
             border-bottom: 1px solid #e2e8f0;
             transition: background 0.2s;
-            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
         }
 
         .article-item:last-child {
@@ -332,6 +335,11 @@
 
         .article-item:hover {
             background: #f8f9fa;
+        }
+
+        .article-content {
+            flex: 1;
+            cursor: pointer;
         }
 
         .article-title {
@@ -353,6 +361,123 @@
             display: flex;
             align-items: center;
             gap: 0.25rem;
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-folder {
+            padding: 0.5rem 1rem;
+            background: white;
+            color: #667eea;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-folder:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1rem;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .folder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .folder-option {
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .folder-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .folder-option-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .folder-option-info {
+            flex: 1;
+        }
+
+        .folder-option-name {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 0.25rem;
+        }
+
+        .folder-option-count {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-footer button {
+            flex: 1;
         }
 
         .empty-state {
@@ -422,6 +547,9 @@
             </a>
             <a href="/feeds" class="nav-link">
                 <span>📡</span> Flux RSS
+            </a>
+            <a href="/folders" class="nav-link">
+                <span>📁</span> Dossiers
             </a>
         </div>
 
@@ -517,6 +645,21 @@
         </div>
     </div>
 
+    <!-- Modal Ajouter au dossier -->
+    <div class="modal" id="folder-modal">
+        <div class="modal-content">
+            <h2 class="modal-header">Ajouter au dossier</h2>
+            <div class="modal-body">
+                <div class="folder-list" id="folder-list">
+                    <p style="text-align: center; color: #64748b;">Chargement des dossiers...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeFolderModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Menu utilisateur
         document.getElementById('user-menu-button').addEventListener('click', function(e) {
@@ -606,11 +749,18 @@
 
                 if (data.success && data.articles && data.articles.length > 0) {
                     container.innerHTML = data.articles.map(article => `
-                        <div class="article-item" onclick="window.open('${article.link}', '_blank')">
-                            <div class="article-title">${article.title}</div>
-                            <div class="article-meta">
-                                <span>📡 ${article.feed_title || 'RSS Feed'}</span>
-                                <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        <div class="article-item">
+                            <div class="article-content" onclick="window.open('${article.link}', '_blank')">
+                                <div class="article-title">${article.title}</div>
+                                <div class="article-meta">
+                                    <span>📡 ${article.feed_title || 'RSS Feed'}</span>
+                                    <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                </div>
+                            </div>
+                            <div class="article-actions">
+                                <button class="btn-folder" onclick="openFolderModal(${article.id}, '${article.title.replace(/'/g, "\\'")}')">
+                                    📁 Ajouter au dossier
+                                </button>
                             </div>
                         </div>
                     `).join('');
@@ -622,6 +772,91 @@
                 document.getElementById('articles-container').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Erreur lors du chargement des articles</p></div>';
             }
         }
+
+        // Variables globales pour le modal
+        let currentArticleId = null;
+        let currentArticleTitle = null;
+
+        // Ouvrir le modal de sélection de dossier
+        async function openFolderModal(articleId, articleTitle) {
+            currentArticleId = articleId;
+            currentArticleTitle = articleTitle;
+
+            // Charger les dossiers
+            try {
+                const response = await fetch('/api/folders');
+                const data = await response.json();
+
+                const folderList = document.getElementById('folder-list');
+
+                if (data.success && data.folders && data.folders.length > 0) {
+                    folderList.innerHTML = data.folders.map(folder => `
+                        <div class="folder-option" onclick="addArticleToFolder(${folder.id}, '${folder.name.replace(/'/g, "\\'")}')">
+                            <div class="folder-option-icon" style="background: ${folder.color}20; color: ${folder.color};">
+                                📁
+                            </div>
+                            <div class="folder-option-info">
+                                <div class="folder-option-name">${folder.name}</div>
+                                <div class="folder-option-count">${folder.article_count || 0} article${folder.article_count > 1 ? 's' : ''}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    folderList.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: #64748b;">
+                            <p style="margin-bottom: 1rem;">Aucun dossier créé</p>
+                            <button class="btn btn-secondary" onclick="window.location.href='/folders'">
+                                + Créer un dossier
+                            </button>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('folder-modal').classList.add('show');
+            } catch (error) {
+                console.error('Erreur chargement dossiers:', error);
+                alert('Erreur lors du chargement des dossiers');
+            }
+        }
+
+        // Fermer le modal
+        function closeFolderModal() {
+            document.getElementById('folder-modal').classList.remove('show');
+            currentArticleId = null;
+            currentArticleTitle = null;
+        }
+
+        // Ajouter un article à un dossier
+        async function addArticleToFolder(folderId, folderName) {
+            try {
+                const response = await fetch(`/api/folders/${folderId}/articles`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ article_id: currentArticleId })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`Article ajouté au dossier "${folderName}" !`);
+                    closeFolderModal();
+                } else if (result.error === 'Article already in folder') {
+                    alert(`Cet article est déjà dans le dossier "${folderName}"`);
+                } else {
+                    alert('Erreur: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Erreur ajout article:', error);
+                alert('Erreur lors de l\'ajout de l\'article au dossier');
+            }
+        }
+
+        // Fermer le modal si on clique en dehors
+        document.getElementById('folder-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFolderModal();
+            }
+        });
 
         // Déconnexion
         document.getElementById('logout-link').addEventListener('click', async function(e) {

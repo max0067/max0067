@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossier - RSS Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #1e293b;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: #f1f5f9;
+            color: #667eea;
+        }
+
+        .nav-link.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .navbar-user {
+            position: relative;
+        }
+
+        .user-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+        }
+
+        .user-button:hover {
+            border-color: #667eea;
+            background: #fafafa;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            min-width: 220px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .user-dropdown.show {
+            display: block;
+        }
+
+        .user-info {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8f9fa;
+        }
+
+        .user-info-name {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 0.9375rem;
+        }
+
+        .user-info-role {
+            font-size: 0.8125rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+            text-transform: capitalize;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #334155;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9375rem;
+            color: #64748b;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .folder-header {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .folder-title-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .folder-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .folder-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .folder-description {
+            color: #64748b;
+            line-height: 1.6;
+            margin-top: 0.5rem;
+        }
+
+        .folder-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-size: 0.9375rem;
+        }
+
+        /* ARTICLES */
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fafafa;
+        }
+
+        .card-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .article-item {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            transition: background 0.2s;
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-item:hover {
+            background: #f8f9fa;
+        }
+
+        .article-content {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .article-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .navbar-menu {
+                display: none;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .folder-header {
+                padding: 1.5rem;
+            }
+
+            .folder-title {
+                font-size: 1.5rem;
+            }
+
+            .folder-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .article-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .article-actions {
+                width: 100%;
+            }
+
+            .article-actions button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <svg width="30" height="30" viewBox="0 0 50 50" style="margin-right: 10px;">
+                <circle cx="25" cy="25" r="20" fill="url(#gradient)" />
+                <circle cx="12" cy="38" r="3" fill="white" />
+                <path d="M 12 32 Q 12 20, 24 20" stroke="white" stroke-width="3" fill="none" />
+                <path d="M 12 26 Q 12 18, 20 18" stroke="white" stroke-width="3" fill="none" />
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea" />
+                        <stop offset="100%" style="stop-color:#764ba2" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span>RSS Manager</span>
+        </div>
+
+        <div class="navbar-menu">
+            <a href="/" class="nav-link">
+                <span>🏠</span> Accueil
+            </a>
+            <a href="/dashboard" class="nav-link">
+                <span>📊</span> Dashboard
+            </a>
+            <a href="/feeds" class="nav-link">
+                <span>📡</span> Flux RSS
+            </a>
+            <a href="/folders" class="nav-link active">
+                <span>📁</span> Dossiers
+            </a>
+        </div>
+
+        <div class="navbar-user">
+            <button class="user-button" id="user-menu-button">
+                <span>👤</span>
+                <span id="current-username">Utilisateur</span>
+                <span>▼</span>
+            </button>
+            <div class="user-dropdown" id="user-dropdown">
+                <div class="user-info">
+                    <div class="user-info-name" id="dropdown-username">Utilisateur</div>
+                    <div class="user-info-role" id="dropdown-role">user</div>
+                </div>
+                <a href="/admin" class="dropdown-item" id="admin-link" style="display: none;">
+                    <span>👑</span> Administration
+                </a>
+                <a href="#" class="dropdown-item" id="logout-link">
+                    <span>🚪</span> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="breadcrumb">
+            <a href="/folders">📁 Dossiers</a>
+            <span>/</span>
+            <span id="breadcrumb-folder">...</span>
+        </div>
+
+        <div class="folder-header" id="folder-header">
+            <div class="folder-title-row">
+                <div class="folder-icon" id="folder-icon" style="background: #667eea20; color: #667eea;">
+                    📁
+                </div>
+                <h1 class="folder-title" id="folder-title">Chargement...</h1>
+            </div>
+            <p class="folder-description" id="folder-description"></p>
+            <div class="folder-stats">
+                <div class="stat-item">
+                    <span>📄</span>
+                    <span id="article-count">0 article</span>
+                </div>
+                <div class="stat-item">
+                    <span>📅</span>
+                    <span id="folder-created">Créé le ...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Articles du dossier</h2>
+            </div>
+            <div id="articles-container">
+                <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <p>Chargement des articles...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const folderId = window.location.pathname.split('/').pop();
+
+        // Menu utilisateur
+        document.getElementById('user-menu-button').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('user-dropdown').classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.navbar-user')) {
+                document.getElementById('user-dropdown').classList.remove('show');
+            }
+        });
+
+        // Charger l'utilisateur
+        async function loadUser() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('current-username').textContent = data.user.username;
+                    document.getElementById('dropdown-username').textContent = data.user.username;
+                    document.getElementById('dropdown-role').textContent = data.user.role;
+                    if (data.user.role === 'admin') {
+                        document.getElementById('admin-link').style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur utilisateur:', error);
+            }
+        }
+
+        // Charger le dossier
+        async function loadFolder() {
+            try {
+                const response = await fetch(`/api/folders/${folderId}`);
+                const data = await response.json();
+
+                if (data.success && data.folder) {
+                    const folder = data.folder;
+
+                    // Header
+                    document.getElementById('folder-title').textContent = folder.name;
+                    document.getElementById('breadcrumb-folder').textContent = folder.name;
+                    document.getElementById('folder-description').textContent = folder.description || '';
+
+                    // Icon color
+                    const icon = document.getElementById('folder-icon');
+                    icon.style.background = folder.color + '20';
+                    icon.style.color = folder.color;
+
+                    // Stats
+                    const articleCount = folder.articles ? folder.articles.length : 0;
+                    document.getElementById('article-count').textContent = `${articleCount} article${articleCount > 1 ? 's' : ''}`;
+
+                    const createdDate = new Date(folder.created_at).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                    document.getElementById('folder-created').textContent = `Créé le ${createdDate}`;
+
+                    // Articles
+                    displayArticles(folder.articles || []);
+                } else {
+                    alert('Dossier introuvable');
+                    window.location.href = '/folders';
+                }
+            } catch (error) {
+                console.error('Erreur chargement dossier:', error);
+                alert('Erreur lors du chargement du dossier');
+                window.location.href = '/folders';
+            }
+        }
+
+        // Afficher les articles
+        function displayArticles(articles) {
+            const container = document.getElementById('articles-container');
+
+            if (articles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p class="empty-state-text">Aucun article dans ce dossier</p>
+                        <p>Les articles peuvent être ajoutés depuis le dashboard</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = articles.map(article => `
+                <div class="article-item">
+                    <div class="article-content" onclick="window.open('${article.link}', '_blank')">
+                        <div class="article-title">${article.title}</div>
+                        <div class="article-meta">
+                            <span>📡 ${article.feed_title || 'RSS Feed'}</span>
+                            <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                    </div>
+                    <div class="article-actions">
+                        <button class="btn btn-danger" onclick="removeArticle(${article.id}, '${article.title.replace(/'/g, "\\'")}')">
+                            🗑️ Retirer
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Retirer un article
+        async function removeArticle(articleId, articleTitle) {
+            if (!confirm(`Retirer l'article "${articleTitle}" de ce dossier ?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/folders/${folderId}/articles/${articleId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    loadFolder(); // Recharger le dossier
+                } else {
+                    alert('Erreur: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Erreur retrait article:', error);
+                alert('Erreur lors du retrait de l\'article');
+            }
+        }
+
+        // Déconnexion
+        document.getElementById('logout-link').addEventListener('click', async function(e) {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+
+        // Chargement initial
+        loadUser();
+        loadFolder();
+    </script>
+</body>
+</html>

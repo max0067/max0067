@@ -20,7 +20,10 @@ from database_v2 import (
     delete_session, get_all_users, update_user, delete_user,
     add_feed, get_user_feeds, get_all_feeds, update_feed, delete_feed, get_feed_by_id,
     get_active_feeds, get_articles, mark_article_read, mark_all_articles_read, toggle_article_favorite,
-    get_article_count, get_user_stats, get_admin_stats
+    get_article_count, get_user_stats, get_admin_stats,
+    create_folder, get_user_folders, get_folder_by_id, update_folder, delete_folder,
+    add_article_to_folder, remove_article_from_folder, get_folder_articles, get_article_folders,
+    move_article_to_folder
 )
 from rss_updater import update_single_feed, update_all_feeds
 
@@ -215,6 +218,20 @@ def dashboard():
 def feeds_manager():
     """Page de gestion des flux RSS"""
     return render_template('feeds_manager.html')
+
+
+@app.route('/folders')
+@login_required
+def folders_page():
+    """Page de gestion des dossiers"""
+    return render_template('folders.html')
+
+
+@app.route('/folders/<int:folder_id>')
+@login_required
+def folder_detail(folder_id):
+    """Page de détails d'un dossier"""
+    return render_template('folder_detail.html')
 
 
 @app.route('/admin')
@@ -482,6 +499,176 @@ def api_toggle_favorite(article_id):
 
     except Exception as e:
         logger.error(f"Error toggling favorite: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+# ===== Routes API - Dossiers =====
+
+@app.route('/api/folders', methods=['GET'])
+@login_required
+def api_get_folders():
+    """Récupère tous les dossiers de l'utilisateur"""
+    try:
+        folders = get_user_folders(request.current_user['id'])
+        return jsonify({'success': True, 'folders': folders})
+    except Exception as e:
+        logger.error(f"Error getting folders: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/folders', methods=['POST'])
+@login_required
+def api_create_folder():
+    """Crée un nouveau dossier"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        description = data.get('description', '')
+        color = data.get('color', '#667eea')
+
+        if not name:
+            return jsonify({'success': False, 'error': 'Name is required'}), 400
+
+        folder_id = create_folder(request.current_user['id'], name, description, color)
+
+        if folder_id:
+            folder = get_folder_by_id(folder_id, request.current_user['id'])
+            return jsonify({'success': True, 'folder': folder}), 201
+        else:
+            return jsonify({'success': False, 'error': 'Folder name already exists'}), 409
+
+    except Exception as e:
+        logger.error(f"Error creating folder: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/folders/<int:folder_id>', methods=['GET'])
+@login_required
+def api_get_folder(folder_id):
+    """Récupère un dossier spécifique avec ses articles"""
+    try:
+        folder = get_folder_by_id(folder_id, request.current_user['id'])
+
+        if not folder:
+            return jsonify({'success': False, 'error': 'Folder not found'}), 404
+
+        articles = get_folder_articles(folder_id, request.current_user['id'])
+        folder['articles'] = articles
+
+        return jsonify({'success': True, 'folder': folder})
+
+    except Exception as e:
+        logger.error(f"Error getting folder: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/folders/<int:folder_id>', methods=['PUT'])
+@login_required
+def api_update_folder(folder_id):
+    """Met à jour un dossier"""
+    try:
+        data = request.get_json()
+
+        # Vérifier que le dossier appartient à l'utilisateur
+        folder = get_folder_by_id(folder_id, request.current_user['id'])
+        if not folder:
+            return jsonify({'success': False, 'error': 'Folder not found'}), 404
+
+        # Mettre à jour
+        success = update_folder(folder_id, request.current_user['id'], **data)
+
+        if success:
+            updated_folder = get_folder_by_id(folder_id, request.current_user['id'])
+            return jsonify({'success': True, 'folder': updated_folder})
+        else:
+            return jsonify({'success': False, 'error': 'Update failed'}), 400
+
+    except Exception as e:
+        logger.error(f"Error updating folder: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/folders/<int:folder_id>', methods=['DELETE'])
+@login_required
+def api_delete_folder(folder_id):
+    """Supprime un dossier"""
+    try:
+        # Vérifier que le dossier appartient à l'utilisateur
+        folder = get_folder_by_id(folder_id, request.current_user['id'])
+        if not folder:
+            return jsonify({'success': False, 'error': 'Folder not found'}), 404
+
+        success = delete_folder(folder_id, request.current_user['id'])
+
+        if success:
+            return jsonify({'success': True, 'message': 'Folder deleted'})
+        else:
+            return jsonify({'success': False, 'error': 'Delete failed'}), 400
+
+    except Exception as e:
+        logger.error(f"Error deleting folder: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/folders/<int:folder_id>/articles', methods=['POST'])
+@login_required
+def api_add_article_to_folder(folder_id):
+    """Ajoute un article à un dossier"""
+    try:
+        data = request.get_json()
+        article_id = data.get('article_id')
+
+        if not article_id:
+            return jsonify({'success': False, 'error': 'article_id is required'}), 400
+
+        # Vérifier que le dossier appartient à l'utilisateur
+        folder = get_folder_by_id(folder_id, request.current_user['id'])
+        if not folder:
+            return jsonify({'success': False, 'error': 'Folder not found'}), 404
+
+        success = add_article_to_folder(article_id, folder_id)
+
+        if success:
+            return jsonify({'success': True, 'message': 'Article added to folder'})
+        else:
+            return jsonify({'success': False, 'error': 'Article already in folder'}), 409
+
+    except Exception as e:
+        logger.error(f"Error adding article to folder: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/folders/<int:folder_id>/articles/<int:article_id>', methods=['DELETE'])
+@login_required
+def api_remove_article_from_folder(folder_id, article_id):
+    """Retire un article d'un dossier"""
+    try:
+        # Vérifier que le dossier appartient à l'utilisateur
+        folder = get_folder_by_id(folder_id, request.current_user['id'])
+        if not folder:
+            return jsonify({'success': False, 'error': 'Folder not found'}), 404
+
+        success = remove_article_from_folder(article_id, folder_id)
+
+        if success:
+            return jsonify({'success': True, 'message': 'Article removed from folder'})
+        else:
+            return jsonify({'success': False, 'error': 'Article not in folder'}), 404
+
+    except Exception as e:
+        logger.error(f"Error removing article from folder: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/articles/<int:article_id>/folders', methods=['GET'])
+@login_required
+def api_get_article_folders(article_id):
+    """Récupère tous les dossiers contenant un article"""
+    try:
+        folders = get_article_folders(article_id, request.current_user['id'])
+        return jsonify({'success': True, 'folders': folders})
+    except Exception as e:
+        logger.error(f"Error getting article folders: {str(e)}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
 
