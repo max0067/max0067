@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from functools import wraps
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from datetime import datetime, timedelta
 import atexit
 import logging
 import os
@@ -34,26 +35,41 @@ init_db()
 scheduler = BackgroundScheduler()
 scheduler.start()
 
-# Mise à jour automatique toutes les 30 minutes
+# Mise à jour automatique toutes les 5 minutes
 def scheduled_update():
     """Mise à jour automatique pour tous les flux actifs de tous les utilisateurs"""
     try:
         feeds = get_active_feeds()
-        logger.info(f"Mise à jour automatique de {len(feeds)} flux")
+        logger.info(f"🔄 Mise à jour automatique de {len(feeds)} flux")
         for feed in feeds:
-            update_single_feed(feed['id'])
+            try:
+                update_single_feed(feed['id'])
+                logger.info(f"✅ Flux mis à jour: {feed.get('title', 'Sans titre')}")
+            except Exception as e:
+                logger.error(f"❌ Erreur flux {feed.get('title', 'Sans titre')}: {str(e)}")
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour automatique: {str(e)}")
 
 scheduler.add_job(
     func=scheduled_update,
-    trigger=IntervalTrigger(minutes=30),
+    trigger=IntervalTrigger(minutes=5),
     id='update_feeds_job',
     name='Mise à jour automatique des flux RSS',
     replace_existing=True
 )
 
+# Mise à jour initiale au démarrage (après 30 secondes)
+scheduler.add_job(
+    func=scheduled_update,
+    trigger='date',
+    run_date=datetime.now() + timedelta(seconds=30),
+    id='initial_update',
+    name='Mise à jour initiale au démarrage'
+)
+
 atexit.register(lambda: scheduler.shutdown())
+
+logger.info("✅ Scheduler configuré : mise à jour toutes les 5 minutes")
 
 
 # ===== Décorateurs =====
