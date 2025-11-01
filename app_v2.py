@@ -31,45 +31,54 @@ from rss_updater import update_single_feed, update_all_feeds
 # Initialisation de la base de données
 init_db()
 
-# Configuration du scheduler
-scheduler = BackgroundScheduler()
-scheduler.start()
+# Configuration du scheduler (avec gestion d'erreurs pour Passenger)
+scheduler = None
+try:
+    scheduler = BackgroundScheduler()
 
-# Mise à jour automatique toutes les 5 minutes
-def scheduled_update():
-    """Mise à jour automatique pour tous les flux actifs de tous les utilisateurs"""
-    try:
-        feeds = get_active_feeds()
-        logger.info(f"🔄 Mise à jour automatique de {len(feeds)} flux")
-        for feed in feeds:
-            try:
-                update_single_feed(feed['id'])
-                logger.info(f"✅ Flux mis à jour: {feed.get('title', 'Sans titre')}")
-            except Exception as e:
-                logger.error(f"❌ Erreur flux {feed.get('title', 'Sans titre')}: {str(e)}")
-    except Exception as e:
-        logger.error(f"Erreur lors de la mise à jour automatique: {str(e)}")
+    # Mise à jour automatique toutes les 5 minutes
+    def scheduled_update():
+        """Mise à jour automatique pour tous les flux actifs de tous les utilisateurs"""
+        try:
+            feeds = get_active_feeds()
+            logger.info(f"🔄 Mise à jour automatique de {len(feeds)} flux")
+            for feed in feeds:
+                try:
+                    update_single_feed(feed['id'])
+                    logger.info(f"✅ Flux mis à jour: {feed.get('title', 'Sans titre')}")
+                except Exception as e:
+                    logger.error(f"❌ Erreur flux {feed.get('title', 'Sans titre')}: {str(e)}")
+        except Exception as e:
+            logger.error(f"Erreur lors de la mise à jour automatique: {str(e)}")
 
-scheduler.add_job(
-    func=scheduled_update,
-    trigger=IntervalTrigger(minutes=5),
-    id='update_feeds_job',
-    name='Mise à jour automatique des flux RSS',
-    replace_existing=True
-)
+    # Démarrer le scheduler
+    scheduler.start()
 
-# Mise à jour initiale au démarrage (après 30 secondes)
-scheduler.add_job(
-    func=scheduled_update,
-    trigger='date',
-    run_date=datetime.now() + timedelta(seconds=30),
-    id='initial_update',
-    name='Mise à jour initiale au démarrage'
-)
+    # Ajouter le job de mise à jour périodique
+    scheduler.add_job(
+        func=scheduled_update,
+        trigger=IntervalTrigger(minutes=5),
+        id='update_feeds_job',
+        name='Mise à jour automatique des flux RSS',
+        replace_existing=True
+    )
 
-atexit.register(lambda: scheduler.shutdown())
+    # Mise à jour initiale au démarrage (après 30 secondes)
+    from apscheduler.triggers.date import DateTrigger
+    scheduler.add_job(
+        func=scheduled_update,
+        trigger=DateTrigger(run_date=datetime.now() + timedelta(seconds=30)),
+        id='initial_update',
+        name='Mise à jour initiale au démarrage'
+    )
 
-logger.info("✅ Scheduler configuré : mise à jour toutes les 5 minutes")
+    # Arrêter proprement le scheduler à la fermeture
+    atexit.register(lambda: scheduler.shutdown() if scheduler else None)
+
+    logger.info("✅ Scheduler configuré : mise à jour toutes les 5 minutes")
+except Exception as e:
+    logger.warning(f"⚠️ Scheduler désactivé (erreur: {str(e)}). Les flux devront être mis à jour manuellement.")
+    scheduler = None
 
 
 # ===== Décorateurs =====
