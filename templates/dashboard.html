@@ -471,6 +471,58 @@
             background: #f8f9fa;
         }
 
+        .btn-tag {
+            padding: 0.5rem 1rem;
+            background: white;
+            color: #10b981;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-tag:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        /* TAG BADGES */
+        .article-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+            margin-top: 0.5rem;
+        }
+
+        .tag-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-badge:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .tag-badge-remove {
+            cursor: pointer;
+            margin-left: 0.125rem;
+            opacity: 0.6;
+        }
+
+        .tag-badge-remove:hover {
+            opacity: 1;
+        }
+
         /* ARTICLES - GRID VIEW */
         .articles-grid {
             display: grid;
@@ -603,6 +655,61 @@
         .folder-option-count {
             font-size: 0.875rem;
             color: #64748b;
+        }
+
+        /* TAG LIST IN MODAL */
+        .tag-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tag-option {
+            padding: 0.875rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tag-option:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .tag-option.active {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .tag-option-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .tag-option-info {
+            flex: 1;
+        }
+
+        .tag-option-name {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 0.25rem;
+        }
+
+        .tag-option-count {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .tag-option-check {
+            font-size: 1.25rem;
+            color: #10b981;
         }
 
         .modal-footer {
@@ -817,6 +924,13 @@
                     </div>
 
                     <div class="filter-group">
+                        <label class="filter-label">🏷️ Tag:</label>
+                        <select class="filter-select" id="filter-tag" onchange="applyFilters()">
+                            <option value="all">Tous les tags</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
                         <label class="filter-label">↕️ Tri:</label>
                         <select class="filter-select" id="filter-sort" onchange="applyFilters()">
                             <option value="date-desc">Plus récents</option>
@@ -888,10 +1002,53 @@
         </div>
     </div>
 
+    <!-- Modal Gérer les tags -->
+    <div class="modal" id="tag-modal">
+        <div class="modal-content">
+            <h2 class="modal-header">🏷️ Gérer les tags</h2>
+            <div class="modal-body">
+                <!-- Créer un nouveau tag -->
+                <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">Créer un nouveau tag</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input
+                            type="text"
+                            id="new-tag-name"
+                            placeholder="Nom du tag..."
+                            style="flex: 1; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.875rem;"
+                        >
+                        <input
+                            type="color"
+                            id="new-tag-color"
+                            value="#10b981"
+                            style="width: 50px; height: 38px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer;"
+                        >
+                        <button class="btn btn-primary" onclick="createNewTag()" style="white-space: nowrap;">
+                            ➕ Créer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Liste des tags existants -->
+                <div>
+                    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">Ajouter/Retirer des tags</h3>
+                    <div class="tag-list" id="tag-list">
+                        <p style="text-align: center; color: #64748b;">Chargement des tags...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTagModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Variables globales
         let allArticles = [];
         let allFeeds = [];
+        let allTags = [];
+        let articleTags = {}; // Map: articleId -> array of tags
         let currentArticleId = null;
         let currentArticleTitle = null;
         let currentViewMode = localStorage.getItem('viewMode') || 'list';
@@ -1030,6 +1187,15 @@
                 filtered = filtered.filter(article => article.feed_id == feedFilter);
             }
 
+            // Filtre par tag
+            const tagFilter = document.getElementById('filter-tag').value;
+            if (tagFilter !== 'all') {
+                filtered = filtered.filter(article => {
+                    const tags = articleTags[article.id] || [];
+                    return tags.some(tag => tag.id == tagFilter);
+                });
+            }
+
             // Filtre non lus
             const unreadOnly = document.getElementById('filter-unread').checked;
             if (unreadOnly) {
@@ -1059,6 +1225,7 @@
             document.getElementById('search-input').value = '';
             document.getElementById('filter-date').value = 'all';
             document.getElementById('filter-feed').value = 'all';
+            document.getElementById('filter-tag').value = 'all';
             document.getElementById('filter-sort').value = 'date-desc';
             document.getElementById('filter-unread').checked = false;
             document.getElementById('filter-unread-toggle').classList.remove('active');
@@ -1107,14 +1274,25 @@
                             <span>📡 ${article.feed_title || 'RSS Feed'}</span>
                             <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
+                        <div class="article-tags" id="article-tags-${article.id}">
+                            <!-- Tags will be loaded dynamically -->
+                        </div>
                     </div>
                     <div class="article-actions">
-                        <button class="btn-folder" onclick="openFolderModal(${article.id}, '${article.title.replace(/'/g, "\\'")}')">
-                            📁 Ajouter au dossier
+                        <button class="btn-folder" onclick="openFolderModal(${article.id}, '${article.title.replace(/'/g, "\\'")}'); event.stopPropagation();">
+                            📁 Dossier
+                        </button>
+                        <button class="btn-tag" onclick="openTagModal(${article.id}, '${article.title.replace(/'/g, "\\'")}'); event.stopPropagation();">
+                            🏷️ Tags
                         </button>
                     </div>
                 </div>
             `).join('');
+
+            // Charger les tags pour chaque article affiché
+            articles.forEach(article => {
+                loadArticleTags(article.id);
+            });
         }
 
         // Ouvrir le modal de sélection de dossier
@@ -1190,10 +1368,209 @@
             }
         }
 
+        // ===== FONCTIONS TAGS =====
+
+        // Charger tous les tags de l'utilisateur
+        async function loadTags() {
+            try {
+                const response = await fetch('/api/tags');
+                const data = await response.json();
+                if (data.success && data.tags) {
+                    allTags = data.tags;
+                    // Peupler le filtre de tags
+                    const tagFilter = document.getElementById('filter-tag');
+                    tagFilter.innerHTML = '<option value="all">Tous les tags</option>' +
+                        allTags.map(tag => `<option value="${tag.id}">${tag.name} (${tag.article_count || 0})</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Erreur chargement tags:', error);
+            }
+        }
+
+        // Charger les tags d'un article
+        async function loadArticleTags(articleId) {
+            try {
+                const response = await fetch(`/api/articles/${articleId}/tags`);
+                const data = await response.json();
+                if (data.success) {
+                    articleTags[articleId] = data.tags || [];
+                    displayArticleTags(articleId, data.tags || []);
+                }
+            } catch (error) {
+                console.error('Erreur chargement tags article:', error);
+            }
+        }
+
+        // Afficher les tags d'un article
+        function displayArticleTags(articleId, tags) {
+            const container = document.getElementById(`article-tags-${articleId}`);
+            if (!container) return;
+
+            if (tags && tags.length > 0) {
+                container.innerHTML = tags.map(tag => `
+                    <span class="tag-badge" style="background: ${tag.color}20; color: ${tag.color}; border: 1px solid ${tag.color}40;">
+                        ${tag.name}
+                        <span class="tag-badge-remove" onclick="removeTagFromArticle(${articleId}, ${tag.id}, event)">✕</span>
+                    </span>
+                `).join('');
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        // Ouvrir le modal de tags
+        async function openTagModal(articleId, articleTitle) {
+            currentArticleId = articleId;
+            currentArticleTitle = articleTitle;
+
+            try {
+                // Charger tous les tags et les tags de l'article
+                const [tagsResponse, articleTagsResponse] = await Promise.all([
+                    fetch('/api/tags'),
+                    fetch(`/api/articles/${articleId}/tags`)
+                ]);
+
+                const tagsData = await tagsResponse.json();
+                const articleTagsData = await articleTagsResponse.json();
+
+                const tagList = document.getElementById('tag-list');
+
+                if (tagsData.success && tagsData.tags && tagsData.tags.length > 0) {
+                    const articleTagIds = articleTagsData.success && articleTagsData.tags
+                        ? articleTagsData.tags.map(t => t.id)
+                        : [];
+
+                    tagList.innerHTML = tagsData.tags.map(tag => {
+                        const isActive = articleTagIds.includes(tag.id);
+                        return `
+                            <div class="tag-option ${isActive ? 'active' : ''}" onclick="toggleArticleTag(${tag.id}, '${tag.name.replace(/'/g, "\\'")}', ${isActive})">
+                                <div class="tag-option-color" style="background: ${tag.color};"></div>
+                                <div class="tag-option-info">
+                                    <div class="tag-option-name">${tag.name}</div>
+                                    <div class="tag-option-count">${tag.article_count || 0} article${tag.article_count > 1 ? 's' : ''}</div>
+                                </div>
+                                <div class="tag-option-check">${isActive ? '✓' : ''}</div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    tagList.innerHTML = '<p style="text-align: center; color: #64748b;">Aucun tag. Créez-en un ci-dessus !</p>';
+                }
+
+                document.getElementById('tag-modal').classList.add('show');
+            } catch (error) {
+                console.error('Erreur ouverture modal tags:', error);
+                alert('Erreur lors du chargement des tags');
+            }
+        }
+
+        // Fermer le modal de tags
+        function closeTagModal() {
+            document.getElementById('tag-modal').classList.remove('show');
+            document.getElementById('new-tag-name').value = '';
+            document.getElementById('new-tag-color').value = '#10b981';
+            currentArticleId = null;
+            currentArticleTitle = null;
+            // Recharger les tags de l'article affiché
+            loadArticles();
+            loadTags();
+        }
+
+        // Créer un nouveau tag
+        async function createNewTag() {
+            const name = document.getElementById('new-tag-name').value.trim();
+            const color = document.getElementById('new-tag-color').value;
+
+            if (!name) {
+                alert('Veuillez entrer un nom pour le tag');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tags', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, color })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('new-tag-name').value = '';
+                    document.getElementById('new-tag-color').value = '#10b981';
+                    // Recharger la liste des tags dans le modal
+                    openTagModal(currentArticleId, currentArticleTitle);
+                    loadTags();
+                } else if (result.error === 'Tag name already exists') {
+                    alert('Ce nom de tag existe déjà');
+                } else {
+                    alert('Erreur: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Erreur création tag:', error);
+                alert('Erreur lors de la création du tag');
+            }
+        }
+
+        // Toggle tag sur un article
+        async function toggleArticleTag(tagId, tagName, isActive) {
+            try {
+                if (isActive) {
+                    // Retirer le tag
+                    const response = await fetch(`/api/tags/${tagId}/articles/${currentArticleId}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        openTagModal(currentArticleId, currentArticleTitle);
+                        loadArticleTags(currentArticleId);
+                    }
+                } else {
+                    // Ajouter le tag
+                    const response = await fetch(`/api/tags/${tagId}/articles`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ article_id: currentArticleId })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        openTagModal(currentArticleId, currentArticleTitle);
+                        loadArticleTags(currentArticleId);
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur toggle tag:', error);
+                alert('Erreur lors de la modification du tag');
+            }
+        }
+
+        // Retirer un tag d'un article (depuis le badge)
+        async function removeTagFromArticle(articleId, tagId, event) {
+            event.stopPropagation();
+            try {
+                const response = await fetch(`/api/tags/${tagId}/articles/${articleId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    loadArticleTags(articleId);
+                    loadTags(); // Reload pour mettre à jour les compteurs
+                }
+            } catch (error) {
+                console.error('Erreur suppression tag:', error);
+            }
+        }
+
         // Fermer le modal si on clique en dehors
         document.getElementById('folder-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeFolderModal();
+            }
+        });
+
+        document.getElementById('tag-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTagModal();
             }
         });
 
@@ -1208,6 +1585,7 @@
         loadUser();
         loadStats();
         loadFeeds();
+        loadTags();
         loadArticles();
         setViewMode(currentViewMode);
     </script>

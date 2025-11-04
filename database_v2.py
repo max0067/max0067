@@ -130,12 +130,42 @@ def init_db():
             )
         ''')
 
+        # Table des tags
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tags (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                color TEXT DEFAULT '#10b981',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                UNIQUE(user_id, name)
+            )
+        ''')
+
+        # Table de relation articles-tags (many-to-many)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS article_tags (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                article_id INTEGER NOT NULL,
+                tag_id INTEGER NOT NULL,
+                tagged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (article_id) REFERENCES articles (id) ON DELETE CASCADE,
+                FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE,
+                UNIQUE(article_id, tag_id)
+            )
+        ''')
+
         # Index pour améliorer les performances
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_articles_feed_id ON articles(feed_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_articles_published_date ON articles(published_date DESC)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_feeds_user_id ON feeds(user_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_articles_user_id ON user_articles(user_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_folders_user_id ON folders(user_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_tags_user_id ON tags(user_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_article_tags_article_id ON article_tags(article_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_article_tags_tag_id ON article_tags(tag_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_folders_user_id ON folders(user_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_article_folders_article_id ON article_folders(article_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_article_folders_folder_id ON article_folders(folder_id)')
@@ -790,6 +820,148 @@ def move_article_to_folder(article_id, from_folder_id, to_folder_id):
         except sqlite3.IntegrityError:
             conn.rollback()
             return False
+
+
+# ===== GESTION DES TAGS =====
+
+def create_tag(user_id, name, color='#10b981'):
+    """Crée un nouveau tag"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO tags (user_id, name, color)
+                VALUES (?, ?, ?)
+            ''', (user_id, name, color))
+            conn.commit()
+            return cursor.lastrowid
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return None
+
+
+def get_user_tags(user_id):
+    """Récupère tous les tags d'un utilisateur avec le nombre d'articles"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT t.*, COUNT(DISTINCT at.article_id) as article_count
+            FROM tags t
+            LEFT JOIN article_tags at ON t.id = at.tag_id
+            WHERE t.user_id = ?
+            GROUP BY t.id
+            ORDER BY t.name
+        ''', (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_tag_by_id(tag_id, user_id):
+    """Récupère un tag par son ID"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM tags
+            WHERE id = ? AND user_id = ?
+        ''', (tag_id, user_id))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def update_tag(tag_id, user_id, **kwargs):
+    """Met à jour un tag"""
+    allowed_fields = ['name', 'color']
+    updates = {k: v for k, v in kwargs.items() if k in allowed_fields}
+
+    if not updates:
+        return False
+
+    with get_db() as conn:
+        cursor = conn.cursor()
+        set_clause = ', '.join([f"{k} = ?" for k in updates.keys()])
+        values = list(updates.values()) + [tag_id, user_id]
+
+        try:
+            cursor.execute(f'''
+                UPDATE tags
+                SET {set_clause}
+                WHERE id = ? AND user_id = ?
+            ''', values)
+            conn.commit()
+            return cursor.rowcount > 0
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return False
+
+
+def delete_tag(tag_id, user_id):
+    """Supprime un tag (et toutes ses relations avec les articles)"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            DELETE FROM tags
+            WHERE id = ? AND user_id = ?
+        ''', (tag_id, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def add_tag_to_article(article_id, tag_id):
+    """Ajoute un tag à un article"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO article_tags (article_id, tag_id)
+                VALUES (?, ?)
+            ''', (article_id, tag_id))
+            conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return False
+
+
+def remove_tag_from_article(article_id, tag_id):
+    """Retire un tag d'un article"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            DELETE FROM article_tags
+            WHERE article_id = ? AND tag_id = ?
+        ''', (article_id, tag_id))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def get_article_tags(article_id, user_id):
+    """Récupère tous les tags d'un article"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT t.*
+            FROM tags t
+            JOIN article_tags at ON t.id = at.tag_id
+            WHERE at.article_id = ? AND t.user_id = ?
+            ORDER BY t.name
+        ''', (article_id, user_id))
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_articles_by_tag(tag_id, user_id, limit=100, offset=0):
+    """Récupère tous les articles ayant un tag spécifique"""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT a.*, f.title as feed_title, ua.read, ua.favorite
+            FROM articles a
+            JOIN article_tags at ON a.id = at.article_id
+            JOIN feeds f ON a.feed_id = f.id
+            LEFT JOIN user_articles ua ON a.id = ua.article_id AND ua.user_id = ?
+            WHERE at.tag_id = ? AND f.user_id = ?
+            ORDER BY a.published_date DESC
+            LIMIT ? OFFSET ?
+        ''', (user_id, tag_id, user_id, limit, offset))
+        return [dict(row) for row in cursor.fetchall()]
 
 
 if __name__ == "__main__":

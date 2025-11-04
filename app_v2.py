@@ -24,7 +24,9 @@ from database_v2 import (
     get_article_count, get_user_stats, get_admin_stats,
     create_folder, get_user_folders, get_folder_by_id, update_folder, delete_folder,
     add_article_to_folder, remove_article_from_folder, get_folder_articles, get_article_folders,
-    move_article_to_folder
+    move_article_to_folder,
+    create_tag, get_user_tags, get_tag_by_id, update_tag, delete_tag,
+    add_tag_to_article, remove_tag_from_article, get_article_tags, get_articles_by_tag
 )
 from rss_updater import update_single_feed, update_all_feeds
 
@@ -698,6 +700,175 @@ def api_get_article_folders(article_id):
         return jsonify({'success': True, 'folders': folders})
     except Exception as e:
         logger.error(f"Error getting article folders: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+# ===== Routes API - Tags =====
+
+@app.route('/api/tags', methods=['GET'])
+@login_required
+def api_get_tags():
+    """Récupère tous les tags de l'utilisateur"""
+    try:
+        tags = get_user_tags(request.current_user['id'])
+        return jsonify({'success': True, 'tags': tags})
+    except Exception as e:
+        logger.error(f"Error getting tags: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/tags', methods=['POST'])
+@login_required
+def api_create_tag():
+    """Crée un nouveau tag"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        color = data.get('color', '#10b981')
+
+        if not name:
+            return jsonify({'success': False, 'error': 'Name is required'}), 400
+
+        tag_id = create_tag(request.current_user['id'], name, color)
+
+        if tag_id:
+            tag = get_tag_by_id(tag_id, request.current_user['id'])
+            return jsonify({'success': True, 'tag': tag}), 201
+        else:
+            return jsonify({'success': False, 'error': 'Tag name already exists'}), 409
+
+    except Exception as e:
+        logger.error(f"Error creating tag: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/tags/<int:tag_id>', methods=['GET'])
+@login_required
+def api_get_tag(tag_id):
+    """Récupère un tag spécifique avec ses articles"""
+    try:
+        tag = get_tag_by_id(tag_id, request.current_user['id'])
+
+        if not tag:
+            return jsonify({'success': False, 'error': 'Tag not found'}), 404
+
+        articles = get_articles_by_tag(tag_id, request.current_user['id'])
+        tag['articles'] = articles
+
+        return jsonify({'success': True, 'tag': tag})
+
+    except Exception as e:
+        logger.error(f"Error getting tag: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/tags/<int:tag_id>', methods=['PUT'])
+@login_required
+def api_update_tag(tag_id):
+    """Met à jour un tag"""
+    try:
+        data = request.get_json()
+
+        # Vérifier que le tag appartient à l'utilisateur
+        tag = get_tag_by_id(tag_id, request.current_user['id'])
+        if not tag:
+            return jsonify({'success': False, 'error': 'Tag not found'}), 404
+
+        # Mettre à jour
+        success = update_tag(tag_id, request.current_user['id'], **data)
+
+        if success:
+            updated_tag = get_tag_by_id(tag_id, request.current_user['id'])
+            return jsonify({'success': True, 'tag': updated_tag})
+        else:
+            return jsonify({'success': False, 'error': 'Update failed'}), 400
+
+    except Exception as e:
+        logger.error(f"Error updating tag: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/tags/<int:tag_id>', methods=['DELETE'])
+@login_required
+def api_delete_tag(tag_id):
+    """Supprime un tag"""
+    try:
+        # Vérifier que le tag appartient à l'utilisateur
+        tag = get_tag_by_id(tag_id, request.current_user['id'])
+        if not tag:
+            return jsonify({'success': False, 'error': 'Tag not found'}), 404
+
+        success = delete_tag(tag_id, request.current_user['id'])
+
+        if success:
+            return jsonify({'success': True, 'message': 'Tag deleted'})
+        else:
+            return jsonify({'success': False, 'error': 'Delete failed'}), 400
+
+    except Exception as e:
+        logger.error(f"Error deleting tag: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/tags/<int:tag_id>/articles', methods=['POST'])
+@login_required
+def api_add_article_to_tag(tag_id):
+    """Ajoute un tag à un article"""
+    try:
+        data = request.get_json()
+        article_id = data.get('article_id')
+
+        if not article_id:
+            return jsonify({'success': False, 'error': 'article_id is required'}), 400
+
+        # Vérifier que le tag appartient à l'utilisateur
+        tag = get_tag_by_id(tag_id, request.current_user['id'])
+        if not tag:
+            return jsonify({'success': False, 'error': 'Tag not found'}), 404
+
+        success = add_tag_to_article(article_id, tag_id)
+
+        if success:
+            return jsonify({'success': True, 'message': 'Tag added to article'})
+        else:
+            return jsonify({'success': False, 'error': 'Tag already on article'}), 409
+
+    except Exception as e:
+        logger.error(f"Error adding tag to article: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/tags/<int:tag_id>/articles/<int:article_id>', methods=['DELETE'])
+@login_required
+def api_remove_article_from_tag(tag_id, article_id):
+    """Retire un tag d'un article"""
+    try:
+        # Vérifier que le tag appartient à l'utilisateur
+        tag = get_tag_by_id(tag_id, request.current_user['id'])
+        if not tag:
+            return jsonify({'success': False, 'error': 'Tag not found'}), 404
+
+        success = remove_tag_from_article(article_id, tag_id)
+
+        if success:
+            return jsonify({'success': True, 'message': 'Tag removed from article'})
+        else:
+            return jsonify({'success': False, 'error': 'Tag not on article'}), 404
+
+    except Exception as e:
+        logger.error(f"Error removing tag from article: {str(e)}")
+        return jsonify({'success': False, 'error': 'Server error'}), 500
+
+
+@app.route('/api/articles/<int:article_id>/tags', methods=['GET'])
+@login_required
+def api_get_article_tags(article_id):
+    """Récupère tous les tags d'un article"""
+    try:
+        tags = get_article_tags(article_id, request.current_user['id'])
+        return jsonify({'success': True, 'tags': tags})
+    except Exception as e:
+        logger.error(f"Error getting article tags: {str(e)}")
         return jsonify({'success': False, 'error': 'Server error'}), 500
 
 
