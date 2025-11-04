@@ -17,7 +17,7 @@
             color: #1e293b;
         }
 
-        /* NAVBAR - Identique à l'accueil */
+        /* NAVBAR */
         .navbar {
             background: white;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -226,30 +226,98 @@
         .card-header {
             padding: 1.25rem 1.5rem;
             border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             background: #fafafa;
-            gap: 1rem;
-            flex-wrap: wrap;
         }
 
         .card-header h2 {
             font-size: 1.125rem;
             font-weight: 600;
             color: #0f172a;
+            margin-bottom: 1rem;
         }
 
-        .search-bar {
+        /* FILTERS BAR */
+        .filters-bar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .filter-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .filter-toggle:hover {
+            border-color: #667eea;
+        }
+
+        .filter-toggle.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* SEARCH & ACTIONS BAR */
+        .search-actions-bar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-bar {
             flex: 1;
             min-width: 250px;
         }
 
         .search-input {
-            flex: 1;
+            width: 100%;
             padding: 0.625rem 1rem;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
@@ -263,13 +331,9 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .card-header-actions {
+        .actions-group {
             display: flex;
             gap: 0.5rem;
-        }
-
-        .card-body {
-            padding: 0;
         }
 
         .btn {
@@ -280,6 +344,9 @@
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .btn-secondary {
@@ -293,8 +360,51 @@
             background: #f8f9fa;
         }
 
-        /* ARTICLES */
-        .article-item {
+        .btn-icon-only {
+            padding: 0.5rem;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+
+        /* VIEW TOGGLE */
+        .view-toggle {
+            display: flex;
+            gap: 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .view-toggle-btn {
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.125rem;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .view-toggle-btn:last-child {
+            border-right: none;
+        }
+
+        .view-toggle-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .view-toggle-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .card-body {
+            padding: 0;
+        }
+
+        /* ARTICLES - LIST VIEW (default) */
+        .articles-list .article-item {
             padding: 1.25rem 1.5rem;
             border-bottom: 1px solid #e2e8f0;
             transition: background 0.2s;
@@ -304,11 +414,11 @@
             gap: 1rem;
         }
 
-        .article-item:last-child {
+        .articles-list .article-item:last-child {
             border-bottom: none;
         }
 
-        .article-item:hover {
+        .articles-list .article-item:hover {
             background: #f8f9fa;
         }
 
@@ -330,6 +440,7 @@
             gap: 1.5rem;
             font-size: 0.875rem;
             color: #64748b;
+            flex-wrap: wrap;
         }
 
         .article-meta span {
@@ -358,6 +469,54 @@
         .btn-folder:hover {
             border-color: #667eea;
             background: #f8f9fa;
+        }
+
+        /* ARTICLES - GRID VIEW */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+            padding: 1.5rem;
+        }
+
+        .articles-grid .article-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: white;
+        }
+
+        .articles-grid .article-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .articles-grid .article-content {
+            flex: 1;
+        }
+
+        .articles-grid .article-title {
+            font-size: 1.0625rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .articles-grid .article-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .articles-grid .article-actions {
+            width: 100%;
+        }
+
+        .articles-grid .btn-folder {
+            width: 100%;
+            justify-content: center;
         }
 
         /* MODAL */
@@ -493,29 +652,42 @@
                 font-size: 1.75rem;
             }
 
-            .card-header {
+            .filters-bar {
                 flex-direction: column;
                 align-items: stretch;
             }
 
-            .card-header h2 {
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-select {
                 width: 100%;
+            }
+
+            .search-actions-bar {
+                flex-direction: column;
             }
 
             .search-bar {
                 width: 100%;
-                min-width: unset;
             }
 
-            .card-header-actions {
+            .actions-group {
                 width: 100%;
             }
 
-            .card-header-actions button {
+            .actions-group button {
                 flex: 1;
             }
 
-            .article-item {
+            .articles-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .articles-list .article-item {
                 flex-direction: column;
                 align-items: stretch;
             }
@@ -623,26 +795,76 @@
 
         <div class="card">
             <div class="card-header">
-                <h2>📰 Derniers articles</h2>
-                <div class="search-bar">
-                    <input
-                        type="text"
-                        class="search-input"
-                        id="search-input"
-                        placeholder="🔍 Rechercher dans les articles..."
-                        onkeyup="filterArticles()"
-                    >
+                <h2>📰 Articles</h2>
+
+                <!-- FILTRES AVANCÉS -->
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label class="filter-label">📅 Date:</label>
+                        <select class="filter-select" id="filter-date" onchange="applyFilters()">
+                            <option value="all">Tout</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">📡 Flux:</label>
+                        <select class="filter-select" id="filter-feed" onchange="applyFilters()">
+                            <option value="all">Tous les flux</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">↕️ Tri:</label>
+                        <select class="filter-select" id="filter-sort" onchange="applyFilters()">
+                            <option value="date-desc">Plus récents</option>
+                            <option value="date-asc">Plus anciens</option>
+                            <option value="title-asc">Titre A-Z</option>
+                            <option value="title-desc">Titre Z-A</option>
+                        </select>
+                    </div>
+
+                    <label class="filter-toggle" id="filter-unread-toggle" onclick="toggleUnreadFilter()">
+                        <input type="checkbox" id="filter-unread">
+                        <span>📖 Non lus seulement</span>
+                    </label>
                 </div>
-                <div class="card-header-actions">
-                    <button class="btn btn-secondary" onclick="clearSearch()">
-                        ✕ Effacer
-                    </button>
-                    <button class="btn btn-secondary" onclick="loadArticles()">
-                        🔄 Actualiser
-                    </button>
+
+                <!-- RECHERCHE & ACTIONS -->
+                <div class="search-actions-bar">
+                    <div class="search-bar">
+                        <input
+                            type="text"
+                            class="search-input"
+                            id="search-input"
+                            placeholder="🔍 Rechercher dans les articles..."
+                            onkeyup="applyFilters()"
+                        >
+                    </div>
+                    <div class="actions-group">
+                        <!-- View Toggle -->
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active" id="view-list-btn" onclick="setViewMode('list')" title="Vue liste">
+                                ☰
+                            </button>
+                            <button class="view-toggle-btn" id="view-grid-btn" onclick="setViewMode('grid')" title="Vue grille">
+                                ⊞
+                            </button>
+                        </div>
+
+                        <button class="btn btn-secondary" onclick="clearFilters()">
+                            ✕ Réinitialiser
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadArticles()">
+                            🔄 Actualiser
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="card-body" id="articles-container">
+
+            <div class="card-body articles-list" id="articles-container">
                 <div class="empty-state">
                     <div class="empty-state-icon">⏳</div>
                     <p>Chargement des articles...</p>
@@ -667,6 +889,13 @@
     </div>
 
     <script>
+        // Variables globales
+        let allArticles = [];
+        let allFeeds = [];
+        let currentArticleId = null;
+        let currentArticleTitle = null;
+        let currentViewMode = localStorage.getItem('viewMode') || 'list';
+
         // Menu utilisateur
         document.getElementById('user-menu-button').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -713,18 +942,34 @@
             }
         }
 
+        // Charger les flux pour le filtre
+        async function loadFeeds() {
+            try {
+                const response = await fetch('/api/feeds');
+                const data = await response.json();
+                if (data.success && data.feeds) {
+                    allFeeds = data.feeds;
+                    const feedSelect = document.getElementById('filter-feed');
+                    feedSelect.innerHTML = '<option value="all">Tous les flux</option>' +
+                        data.feeds.map(feed => `<option value="${feed.id}">${feed.title}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Erreur flux:', error);
+            }
+        }
+
         // Charger les articles
         async function loadArticles() {
             try {
                 const container = document.getElementById('articles-container');
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><p>Chargement...</p></div>';
 
-                const response = await fetch('/api/articles?limit=50');
+                const response = await fetch('/api/articles?limit=100');
                 const data = await response.json();
 
                 if (data.success && data.articles && data.articles.length > 0) {
                     allArticles = data.articles;
-                    displayArticles(allArticles);
+                    applyFilters();
                 } else {
                     allArticles = [];
                     container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Aucun article disponible</p></div>';
@@ -736,16 +981,147 @@
             }
         }
 
-        // Variables globales pour le modal
-        let currentArticleId = null;
-        let currentArticleTitle = null;
+        // Toggle filtre non lus
+        function toggleUnreadFilter() {
+            const checkbox = document.getElementById('filter-unread');
+            const toggle = document.getElementById('filter-unread-toggle');
+            checkbox.checked = !checkbox.checked;
+            toggle.classList.toggle('active', checkbox.checked);
+            applyFilters();
+        }
+
+        // Appliquer les filtres
+        function applyFilters() {
+            let filtered = [...allArticles];
+
+            // Filtre par recherche
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            if (searchTerm) {
+                filtered = filtered.filter(article => {
+                    const title = article.title.toLowerCase();
+                    const feedTitle = (article.feed_title || '').toLowerCase();
+                    const description = (article.description || '').toLowerCase();
+                    return title.includes(searchTerm) ||
+                           feedTitle.includes(searchTerm) ||
+                           description.includes(searchTerm);
+                });
+            }
+
+            // Filtre par date
+            const dateFilter = document.getElementById('filter-date').value;
+            if (dateFilter !== 'all') {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+                filtered = filtered.filter(article => {
+                    const articleDate = new Date(article.published_date);
+                    if (dateFilter === 'today') return articleDate >= today;
+                    if (dateFilter === 'week') return articleDate >= weekAgo;
+                    if (dateFilter === 'month') return articleDate >= monthAgo;
+                    return true;
+                });
+            }
+
+            // Filtre par flux
+            const feedFilter = document.getElementById('filter-feed').value;
+            if (feedFilter !== 'all') {
+                filtered = filtered.filter(article => article.feed_id == feedFilter);
+            }
+
+            // Filtre non lus
+            const unreadOnly = document.getElementById('filter-unread').checked;
+            if (unreadOnly) {
+                filtered = filtered.filter(article => !article.read);
+            }
+
+            // Tri
+            const sortBy = document.getElementById('filter-sort').value;
+            filtered.sort((a, b) => {
+                if (sortBy === 'date-desc') {
+                    return new Date(b.published_date) - new Date(a.published_date);
+                } else if (sortBy === 'date-asc') {
+                    return new Date(a.published_date) - new Date(b.published_date);
+                } else if (sortBy === 'title-asc') {
+                    return a.title.localeCompare(b.title);
+                } else if (sortBy === 'title-desc') {
+                    return b.title.localeCompare(a.title);
+                }
+                return 0;
+            });
+
+            displayArticles(filtered);
+        }
+
+        // Réinitialiser les filtres
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-date').value = 'all';
+            document.getElementById('filter-feed').value = 'all';
+            document.getElementById('filter-sort').value = 'date-desc';
+            document.getElementById('filter-unread').checked = false;
+            document.getElementById('filter-unread-toggle').classList.remove('active');
+            applyFilters();
+        }
+
+        // Changer le mode d'affichage
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            localStorage.setItem('viewMode', mode);
+
+            const container = document.getElementById('articles-container');
+            const listBtn = document.getElementById('view-list-btn');
+            const gridBtn = document.getElementById('view-grid-btn');
+
+            if (mode === 'grid') {
+                container.classList.remove('articles-list');
+                container.classList.add('articles-grid');
+                listBtn.classList.remove('active');
+                gridBtn.classList.add('active');
+            } else {
+                container.classList.remove('articles-grid');
+                container.classList.add('articles-list');
+                gridBtn.classList.remove('active');
+                listBtn.classList.add('active');
+            }
+
+            // Réafficher les articles dans le nouveau mode
+            applyFilters();
+        }
+
+        // Afficher les articles
+        function displayArticles(articles) {
+            const container = document.getElementById('articles-container');
+
+            if (!articles || articles.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Aucun article trouvé</p></div>';
+                return;
+            }
+
+            container.innerHTML = articles.map(article => `
+                <div class="article-item">
+                    <div class="article-content" onclick="window.open('${article.link}', '_blank')">
+                        <div class="article-title">${article.title}</div>
+                        <div class="article-meta">
+                            <span>📡 ${article.feed_title || 'RSS Feed'}</span>
+                            <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                    </div>
+                    <div class="article-actions">
+                        <button class="btn-folder" onclick="openFolderModal(${article.id}, '${article.title.replace(/'/g, "\\'")}')">
+                            📁 Ajouter au dossier
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
         // Ouvrir le modal de sélection de dossier
         async function openFolderModal(articleId, articleTitle) {
             currentArticleId = articleId;
             currentArticleTitle = articleTitle;
 
-            // Charger les dossiers
             try {
                 const response = await fetch('/api/folders');
                 const data = await response.json();
@@ -828,80 +1204,12 @@
             window.location.href = '/login';
         });
 
-        // Variables pour stocker tous les articles
-        let allArticles = [];
-
-        // Fonction de recherche/filtre
-        function filterArticles() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-            const container = document.getElementById('articles-container');
-
-            if (!searchTerm) {
-                // Si pas de recherche, afficher tous les articles
-                displayArticles(allArticles);
-                return;
-            }
-
-            // Filtrer les articles
-            const filtered = allArticles.filter(article => {
-                const title = article.title.toLowerCase();
-                const feedTitle = (article.feed_title || '').toLowerCase();
-                const description = (article.description || '').toLowerCase();
-
-                return title.includes(searchTerm) ||
-                       feedTitle.includes(searchTerm) ||
-                       description.includes(searchTerm);
-            });
-
-            if (filtered.length > 0) {
-                displayArticles(filtered);
-            } else {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔍</div>
-                        <p>Aucun article trouvé pour "${searchTerm}"</p>
-                    </div>
-                `;
-            }
-        }
-
-        // Effacer la recherche
-        function clearSearch() {
-            document.getElementById('search-input').value = '';
-            displayArticles(allArticles);
-        }
-
-        // Afficher les articles (nouvelle fonction séparée)
-        function displayArticles(articles) {
-            const container = document.getElementById('articles-container');
-
-            if (!articles || articles.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Aucun article disponible</p></div>';
-                return;
-            }
-
-            container.innerHTML = articles.map(article => `
-                <div class="article-item">
-                    <div class="article-content" onclick="window.open('${article.link}', '_blank')">
-                        <div class="article-title">${article.title}</div>
-                        <div class="article-meta">
-                            <span>📡 ${article.feed_title || 'RSS Feed'}</span>
-                            <span>📅 ${new Date(article.published_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                        </div>
-                    </div>
-                    <div class="article-actions">
-                        <button class="btn-folder" onclick="openFolderModal(${article.id}, '${article.title.replace(/'/g, "\\'")}')">
-                            📁 Ajouter au dossier
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
         // Chargement initial
         loadUser();
         loadStats();
+        loadFeeds();
         loadArticles();
+        setViewMode(currentViewMode);
     </script>
 </body>
 </html>
