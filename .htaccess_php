@@ -1,0 +1,87 @@
+# Configuration Apache pour l'application PHP RSS Reader
+
+# Active le moteur de réécriture
+RewriteEngine On
+RewriteBase /
+
+# Configuration SSL (recommandé)
+# Décommentez les lignes suivantes pour forcer HTTPS
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Ne pas rediriger les fichiers statiques
+RewriteCond %{REQUEST_URI} !^/static/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rediriger toutes les autres requêtes vers index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Protection des fichiers sensibles
+<FilesMatch "(\.db$|\.sqlite$|\.env$|config\.php$)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protéger le dossier php/
+<DirectoryMatch "^.*/php/">
+    Order allow,deny
+    Deny from all
+</DirectoryMatch>
+
+# Protéger les fichiers logs
+<FilesMatch "(\.log$)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Autoriser l'accès aux fichiers statiques
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|html)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Compression Gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache pour les fichiers statiques
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Désactiver l'affichage des dossiers
+Options -Indexes
+
+# Gestion des erreurs
+ErrorDocument 404 /index.php
+ErrorDocument 500 /index.php
+
+# Configuration PHP
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value error_log logs/php_errors.log
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 60
+    php_value memory_limit 256M
+</IfModule>
+
+# Sécurité supplémentaire
+<IfModule mod_headers.c>
+    # Empêcher l'injection de scripts
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Politique de sécurité du contenu
+    Header set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; font-src 'self' data:;"
+</IfModule>
