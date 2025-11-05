@@ -6,7 +6,7 @@ PassengerAppRoot /home/wrbh3411/dusselle.fr
 
 # Point d'entrée de l'application
 PassengerAppType wsgi
-PassengerStartupFile passenger_wsgi.py
+PassengerStartupFile passenger_wsgi_debug.py
 
 # Version de Python (optionnel, Passenger détecte automatiquement)
 # PassengerPython /home/VOTRE_USER/public_html/rss-manager/venv/bin/python
