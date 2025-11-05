@@ -2,9 +2,7 @@
 
 # Active Passenger
 PassengerEnabled on
-PassengerAppRoot /home/VOTRE_USER/public_html/rss-manager
-# OU pour un sous-domaine:
-# PassengerAppRoot /home/VOTRE_USER/rss.votre-domaine.com
+PassengerAppRoot /home/wrbh3411/dusselle.fr
 
 # Point d'entrée de l'application
 PassengerAppType wsgi

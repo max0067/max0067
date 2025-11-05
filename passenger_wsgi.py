@@ -7,10 +7,8 @@ import sys
 import os
 
 # Chemin vers le répertoire de l'application
-# IMPORTANT: Modifiez ce chemin selon votre configuration o2switch
-INTERP = os.path.expanduser("~/public_html/rss-manager/venv/bin/python")
-# OU si vous utilisez un sous-domaine:
-# INTERP = os.path.expanduser("~/rss.votre-domaine.com/venv/bin/python")
+# Configuration pour dusselle.fr sur o2switch
+INTERP = os.path.expanduser("~/dusselle.fr/venv/bin/python")
 
 # Vérifier si l'interpréteur Python existe
 if os.path.isfile(INTERP):
@@ -23,8 +21,8 @@ else:
 # Ajouter le répertoire de l'application au PYTHONPATH
 sys.path.insert(0, os.path.dirname(__file__))
 
-# Importer l'application Flask
-from app import app as application
+# Importer l'application Flask (version 2)
+from app_v2 import app as application
 
 # Pour le debugging (à désactiver en production)
 # import logging
