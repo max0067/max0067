@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RSS Manager Pro{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/modern_pro.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar moderne -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="22" fill="url(#logoGradient)" />
+                    <circle cx="12" cy="38" r="4" fill="white" />
+                    <path d="M 12 30 Q 12 16, 26 16" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <path d="M 12 24 Q 12 14, 22 14" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5"/>
+                            <stop offset="100%" style="stop-color:#7C3AED"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="logo-text">
+                    <span class="logo-title">RSS Manager</span>
+                    <span class="logo-subtitle">Professional Edition</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebar-toggle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">NAVIGATION</span>
+                <a href="/" class="nav-item {% block nav_home %}{% endblock %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span class="nav-text">Flux RSS</span>
+                    <span class="nav-badge" id="unread-count" style="display:none;">0</span>
+                </a>
+                <a href="/dashboard" class="nav-item {% block nav_dashboard %}{% endblock %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9"></rect>
+                        <rect x="14" y="3" width="7" height="5"></rect>
+                        <rect x="14" y="12" width="7" height="9"></rect>
+                        <rect x="3" y="16" width="7" height="5"></rect>
+                    </svg>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="/feeds" class="nav-item {% block nav_feeds %}{% endblock %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="1"></circle>
+                    </svg>
+                    <span class="nav-text">Gérer les flux</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-title">COLLECTIONS</span>
+                <a href="/#favorites" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span class="nav-text">Favoris</span>
+                    <span class="nav-badge" id="favorites-count" style="display:none;">0</span>
+                </a>
+                <a href="/#saved" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span class="nav-text">Sauvegardés</span>
+                </a>
+            </div>
+
+            <div class="nav-section admin-section" id="admin-section" style="display:none;">
+                <span class="nav-section-title">ADMINISTRATION</span>
+                <a href="/admin" class="nav-item {% block nav_admin %}{% endblock %}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7v10c0 5.5 4.5 10 10 10s10-4.5 10-10V7l-10-5z"></path>
+                    </svg>
+                    <span class="nav-text">Administration</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile" id="user-profile">
+                <div class="user-avatar">
+                    <span id="user-initial">U</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">Utilisateur</div>
+                    <div class="user-role" id="user-role">Member</div>
+                </div>
+                <button class="user-menu-btn" id="user-menu-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="12" cy="5" r="1"></circle>
+                        <circle cx="12" cy="19" r="1"></circle>
+                    </svg>
+                </button>
+            </div>
+            <div class="user-dropdown" id="user-dropdown" style="display:none;">
+                <a href="#" class="dropdown-item" onclick="logout(); return false;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content" id="main-content">
+        <div class="topbar">
+            <button class="mobile-menu-btn" id="mobile-menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <div class="topbar-title">
+                <h1>{% block page_title %}Bienvenue{% endblock %}</h1>
+                <p class="topbar-subtitle">{% block page_subtitle %}{% endblock %}</p>
+            </div>
+            <div class="topbar-actions">
+                {% block topbar_actions %}{% endblock %}
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // User authentication
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+                if (data.success) {
+                    const user = data.user;
+                    document.getElementById('user-name').textContent = user.username;
+                    document.getElementById('user-role').textContent = user.role === 'admin' ? 'Administrateur' : 'Membre';
+                    document.getElementById('user-initial').textContent = user.username[0].toUpperCase();
+
+                    if (user.role === 'admin') {
+                        document.getElementById('admin-section').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur chargement utilisateur:', error);
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch (error) {
+                console.error('Erreur déconnexion:', error);
+            }
+        }
+
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+
+        sidebarToggle?.addEventListener('click', toggleSidebar);
+        mobileMenuBtn?.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+        });
+
+        // Restore sidebar state
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        }
+
+        // User menu toggle
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        userMenuBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.style.display = userDropdown.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', () => {
+            userDropdown.style.display = 'none';
+        });
+
+        // Initialize
+        loadUserInfo();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

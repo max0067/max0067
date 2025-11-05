@@ -200,7 +200,7 @@ def api_current_user():
 @login_required
 def index():
     """Page principale"""
-    return render_template('index_v2.html')
+    return render_template('index_modern_pro.html')
 
 
 @app.route('/dashboard')
