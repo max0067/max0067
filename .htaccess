@@ -17,10 +17,21 @@ PassengerStartupFile passenger_wsgi.py
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Protection des fichiers sensibles
-<FilesMatch "(\.py$|\.db$|\.sqlite$|requirements\.txt$|\.env$)">
+# Note: passenger_wsgi.py doit rester accessible pour Passenger
+<FilesMatch "(\.db$|\.sqlite$|requirements\.txt$|\.env$)">
     Order allow,deny
     Deny from all
 </FilesMatch>
+
+# Bloquer l'accès aux fichiers Python SAUF passenger_wsgi.py
+<FilesMatch "\.py$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+<Files "passenger_wsgi.py">
+    Order allow,deny
+    Allow from all
+</Files>
 
 # Autoriser l'accès aux fichiers statiques
 <FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
