@@ -1,0 +1,13 @@
+# Dépendances compatibles avec Python 3.6
+# Utilisez ce fichier si vous avez Python 3.6 sur votre serveur
+
+Flask==2.0.3
+feedparser==6.0.10
+requests==2.31.0
+APScheduler==3.9.1
+python-dateutil==2.8.2
+Werkzeug==2.0.3
+Jinja2==3.0.3
+MarkupSafe==2.0.1
+click==8.0.4
+itsdangerous==2.0.1

@@ -1,7 +1,6 @@
 """
-Fichier de configuration Passenger WSGI pour o2switch
-Ce fichier est le point d'entrée pour l'application Flask sur les serveurs utilisant Passenger
-Configuration pour dusselle.fr - Utilise les packages installés avec pip install --user
+Fichier de configuration Passenger WSGI pour o2switch - SANS environnement virtuel
+Utilisez ce fichier si vous installez les dépendances avec pip install --user
 """
 
 import sys
@@ -9,12 +8,6 @@ import os
 
 # Ajouter le répertoire de l'application au PYTHONPATH
 sys.path.insert(0, os.path.dirname(__file__))
-
-# Tentative d'utiliser un environnement virtuel si disponible
-INTERP = os.path.expanduser("~/dusselle.fr/venv/bin/python")
-if os.path.isfile(INTERP):
-    if sys.executable != INTERP:
-        os.execl(INTERP, INTERP, *sys.argv)
 
 # Importer l'application Flask (version 2)
 try:
@@ -30,13 +23,12 @@ except ImportError as e:
         <h1>Erreur de démarrage de l'application</h1>
         <p>Erreur: {str(e)}</p>
         <p>Python version: {sys.version}</p>
-        <h2>Instructions :</h2>
+        <p>Python path: {sys.path}</p>
+        <h2>Instructions de déploiement :</h2>
         <ol>
+            <li>Vérifiez que Python 3.6+ est installé</li>
             <li>Installez les dépendances : <code>pip install --user -r requirements_py36.txt</code></li>
-            <li>Redémarrez : <code>touch tmp/restart.txt</code></li>
+            <li>Vérifiez que tous les fichiers sont présents (app_v2.py, database_v2.py, etc.)</li>
+            <li>Redémarrez Passenger : <code>touch tmp/restart.txt</code></li>
         </ol>
         """, 500
-
-# Pour le debugging (à désactiver en production)
-# import logging
-# logging.basicConfig(stream=sys.stderr)
