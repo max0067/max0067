@@ -1,0 +1,250 @@
+================================================================================
+  INSTALLATION MANUELLE - Application PHP RSS Reader
+  Pour dusselle.fr
+================================================================================
+
+📦 FICHIER À TÉLÉCHARGER : dusselle_php_deploy.zip (23 KB)
+
+================================================================================
+  MÉTHODE 1 : Installation via SSH (RECOMMANDÉ - 2 minutes)
+================================================================================
+
+1. Téléchargez le fichier dusselle_php_deploy.zip sur votre ordinateur
+
+2. Uploadez-le sur votre serveur via SCP/SFTP :
+   scp dusselle_php_deploy.zip wrbh3411@dusselle.fr:~/dusselle.fr/
+
+3. Connectez-vous en SSH :
+   ssh wrbh3411@dusselle.fr
+
+4. Allez dans le dossier :
+   cd ~/dusselle.fr
+
+5. Décompressez l'archive :
+   unzip -o dusselle_php_deploy.zip
+
+6. Copiez les fichiers à la racine :
+   cp dusselle_php_deploy/* . -r
+   cp dusselle_php_deploy/.htaccess_php .
+
+7. Renommez .htaccess_php en .htaccess :
+   mv .htaccess .htaccess_python_old
+   mv .htaccess_php .htaccess
+
+8. Désactivez les fichiers Python :
+   mv app_v2.py app_v2.py.disabled 2>/dev/null || true
+   mv passenger_wsgi.py passenger_wsgi.py.disabled 2>/dev/null || true
+
+9. Créez le dossier logs :
+   mkdir -p logs
+   chmod 755 logs
+
+10. Redémarrez Passenger :
+    touch tmp/restart.txt
+
+11. Attendez 15 secondes :
+    sleep 15
+
+12. Testez : http://dusselle.fr
+
+✅ Vous devriez voir la page de login !
+
+================================================================================
+  MÉTHODE 2 : Installation via cPanel File Manager (5 minutes)
+================================================================================
+
+1. TÉLÉCHARGEMENT
+   - Téléchargez dusselle_php_deploy.zip sur votre ordinateur
+
+2. CONNEXION cPANEL
+   - Allez sur : https://www.o2switch.fr/cpanel/
+   - Connectez-vous avec vos identifiants o2switch
+
+3. FILE MANAGER
+   - Ouvrez "File Manager" (Gestionnaire de fichiers)
+   - Naviguez vers : dusselle.fr/
+
+4. UPLOAD DU ZIP
+   - Cliquez sur "Upload"
+   - Sélectionnez dusselle_php_deploy.zip
+   - Attendez que l'upload se termine
+   - Retournez dans File Manager
+
+5. DÉCOMPRESSION
+   - Clic droit sur dusselle_php_deploy.zip
+   - Cliquez sur "Extract" (Extraire)
+   - Attendez la fin de l'extraction
+
+6. COPIE DES FICHIERS
+   - Ouvrez le dossier dusselle_php_deploy/
+   - Sélectionnez TOUS les fichiers (Ctrl+A ou Cmd+A)
+   - Clic droit > "Copy" (Copier)
+   - Retournez dans le dossier parent (dusselle.fr/)
+   - Clic droit > "Paste" (Coller)
+   - Confirmez le remplacement si demandé
+
+7. COPIER LE DOSSIER php/
+   - Dans dusselle_php_deploy/, sélectionnez le dossier php/
+   - Clic droit > "Copy"
+   - Retournez dans dusselle.fr/
+   - Clic droit > "Paste"
+   - Confirmez le remplacement
+
+8. RENOMMER LE .htaccess
+   - Sélectionnez .htaccess (l'ancien)
+   - Clic droit > "Rename" > .htaccess_python_old
+   - Sélectionnez .htaccess_php
+   - Clic droit > "Rename" > .htaccess
+
+9. DÉSACTIVER PYTHON
+   - Trouvez app_v2.py
+   - Clic droit > "Rename" > app_v2.py.disabled
+   - Trouvez passenger_wsgi.py
+   - Clic droit > "Rename" > passenger_wsgi.py.disabled
+
+10. CRÉER LE DOSSIER logs/
+    - Clic droit dans l'espace vide > "Create New Folder"
+    - Nom : logs
+    - Permissions : 755
+
+11. REDÉMARRER PASSENGER
+    - Allez dans le dossier tmp/
+    - Créez un nouveau fichier : restart.txt (vide)
+
+12. ATTENDRE ET TESTER
+    - Attendez 15-20 secondes
+    - Ouvrez http://dusselle.fr dans votre navigateur
+    - ✅ Vous devriez voir la page de login !
+
+================================================================================
+  VÉRIFICATIONS
+================================================================================
+
+Après l'installation, vérifiez dans File Manager :
+
+✅ index.php existe à la racine
+✅ Dossier php/ existe avec 5 fichiers dedans :
+   - config.php
+   - database.php
+   - session.php
+   - api.php
+   - rss_updater.php
+✅ .htaccess commence par "PassengerEnabled off"
+✅ app_v2.py renommé en app_v2.py.disabled
+✅ passenger_wsgi.py renommé en passenger_wsgi.py.disabled
+✅ Dossier logs/ existe
+✅ Dossier templates/ existe (déjà présent)
+✅ Dossier static/ existe (déjà présent)
+
+================================================================================
+  STRUCTURE FINALE
+================================================================================
+
+dusselle.fr/
+├── index.php                    ✅ NOUVEAU
+├── .htaccess                    ✅ MODIFIÉ (PHP)
+├── cron_update_feeds.php        ✅ NOUVEAU
+├── php/                         ✅ NOUVEAU DOSSIER
+│   ├── config.php
+│   ├── database.php
+│   ├── session.php
+│   ├── api.php
+│   └── rss_updater.php
+├── templates/                   ✅ EXISTANT (pas touché)
+├── static/                      ✅ EXISTANT (pas touché)
+├── logs/                        ✅ NOUVEAU DOSSIER
+├── rss_feeds.db                 ✅ EXISTANT (pas touché)
+└── Fichiers Python désactivés
+    ├── app_v2.py.disabled
+    └── passenger_wsgi.py.disabled
+
+================================================================================
+  PREMIÈRE CONNEXION
+================================================================================
+
+URL : http://dusselle.fr
+
+Compte admin par défaut :
+- Username : admin
+- Password : admin123
+
+⚠️ IMPORTANT : Changez le mot de passe immédiatement après connexion !
+
+================================================================================
+  CONFIGURATION DU CRON (Mise à jour automatique)
+================================================================================
+
+Dans cPanel :
+
+1. Allez dans "Cron Jobs"
+
+2. Créez une nouvelle tâche :
+   Minute : */30
+   Heure : *
+   Jour : *
+   Mois : *
+   Jour semaine : *
+   Commande : /usr/bin/php /home/wrbh3411/dusselle.fr/cron_update_feeds.php
+
+3. Sauvegardez
+
+Les flux RSS se mettront à jour automatiquement toutes les 30 minutes.
+
+================================================================================
+  PERSONNALISATION
+================================================================================
+
+Éditez php/config.php dans File Manager :
+
+Changez cette ligne :
+define('SECRET_KEY', 'votre-cle-tres-secrete-unique-123');
+
+================================================================================
+  DÉPANNAGE
+================================================================================
+
+❌ Toujours "something went wrong" ?
+   → Vérifiez que .htaccess commence par "PassengerEnabled off"
+   → Attendez 1-2 minutes et videz le cache du navigateur
+   → Créez/touchez tmp/restart.txt à nouveau
+
+❌ Page blanche ?
+   → Consultez les logs : cPanel > Logs > Error Log
+   → Vérifiez que index.php existe
+   → Vérifiez que le dossier php/ existe
+
+❌ Erreur 500 ?
+   → Vérifiez les permissions : php/ doit être 755
+   → Vérifiez que tous les fichiers PHP sont présents
+
+================================================================================
+  SUPPORT
+================================================================================
+
+Documentation complète dans l'archive :
+- README_PHP.md : Documentation technique
+- DEMARRAGE_PHP.md : Guide complet
+- FIX_PASSENGER_ERROR.md : Dépannage Passenger
+
+Logs à consulter en cas de problème :
+- cPanel > Logs > Error Log
+- dusselle.fr/logs/app.log
+
+================================================================================
+✅ CHECKLIST FINALE
+================================================================================
+
+Après installation :
+
+□ Le site affiche la page de login (pas d'erreur)
+□ Je peux me connecter avec admin/admin123
+□ Le dashboard s'affiche
+□ J'ai changé le mot de passe admin
+□ J'ai configuré le CRON
+□ J'ai changé SECRET_KEY dans php/config.php
+
+================================================================================
+
+Temps estimé : 2-5 minutes selon la méthode choisie
+
+Bonne installation ! 🚀
