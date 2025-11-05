@@ -94,6 +94,20 @@ else
 fi
 
 echo ""
+echo "🔄 Étape 6/6 : Redémarrage de Passenger..."
+
+# Créer le dossier tmp s'il n'existe pas
+if [ ! -d "tmp" ]; then
+    mkdir -p tmp
+    echo "   → Dossier tmp/ créé"
+fi
+
+# Redémarrer Passenger en touchant le fichier restart.txt
+touch tmp/restart.txt
+echo "   ✅ Passenger redémarré (désactivation en cours...)"
+echo "   ⏱️  Attendez 10-15 secondes que les changements prennent effet"
+
+echo ""
 echo "================================================"
 echo "✅ DÉPLOIEMENT TERMINÉ !"
 echo "================================================"

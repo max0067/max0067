@@ -1,5 +1,8 @@
 # Configuration Apache pour l'application PHP RSS Reader
 
+# IMPORTANT : Désactiver Passenger (serveur Python)
+PassengerEnabled off
+
 # Active le moteur de réécriture
 RewriteEngine On
 RewriteBase /
